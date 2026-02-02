@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    <title>One Hundred Push-ups</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --primary-light: #DBEAFE;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --warning: #F59E0B;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --radius: 16px;
+            --radius-lg: 24px;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #FFFFFF;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            color: var(--gray-800);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        html {
+            height: -webkit-fill-available;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 20px;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        /* 헤더 */
+        .header {
+            text-align: center;
+            padding: 40px 0 30px;
+            background: linear-gradient(180deg, var(--primary-light) 0%, #FFFFFF 100%);
+            margin: 0 -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .header-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-icon span {
+            font-size: 40px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--gray-800);
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: var(--gray-500);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        /* 로그인 화면 */
+        .login-screen {
+            padding: 20px 0;
+        }
+
+        .login-card {
+            background: #FFFFFF;
+            border-radius: var(--radius-lg);
+            padding: 40px 24px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--gray-100);
+        }
+
+        .login-card h2 {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+
+        .login-card .subtitle {
+            text-align: center;
+            color: var(--gray-500);
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: var(--gray-50);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .input-group input::placeholder {
+            color: var(--gray-400);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* 메인 화면 */
+        .main-screen {
+            display: none;
+            padding-bottom: 40px;
+        }
+
+        .main-screen.active {
+            display: block;
+        }
+
+        /* 유저 정보 바 */
+        .user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--gray-800);
+        }
+
+        .user-status {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+
+        .logout-btn {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:active {
+            background: var(--gray-200);
+        }
+
+        /* 월 선택 */
+        .month-select-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .month-select {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            background: #FFFFFF;
+            color: var(--gray-700);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 20px;
+        }
+
+        /* 통계 카드 */
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            color: white;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .stats-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .stats-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .stats-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* 오늘 체크 버튼 */
+        .today-action {
+            background: #FFFFFF;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--gray-100);
+        }
+
+        .today-action.completed {
+            border-color: var(--success);
+            background: var(--success-light);
+        }
+
+        .today-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .today-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .today-action.completed .today-icon {
+            background: var(--success);
+        }
+
+        .today-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .today-date {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+        }
+
+        .today-btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .today-btn:active {
+            transform: scale(0.98);
+        }
+
+        .today-action.completed .today-btn {
+            background: var(--success);
+        }
+
+        .today-action.not-workday .today-btn {
+            background: var(--gray-300);
+            cursor: default;
+        }
+
+        /* 캘린더 */
+        .calendar-card {
+            background: #FFFFFF;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+        }
+
+        .calendar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 20px;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 12px;
+        }
+
+        .calendar-header span {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            padding: 8px 0;
+        }
+
+        .calendar-header span:first-child {
+            color: var(--danger);
+        }
+
+        .calendar-header span:last-child {
+            color: var(--primary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            background: var(--gray-50);
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .calendar-day.today {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 700;
+            box-shadow: inset 0 0 0 2px var(--primary);
+        }
+
+        .calendar-day.completed {
+            background: var(--success);
+            color: white;
+        }
+
+        .calendar-day.completed::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .calendar-day.sunday {
+            color: var(--danger);
+            background: var(--danger-light);
+        }
+
+        .calendar-day.saturday {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .calendar-day.holiday {
+            color: var(--danger);
+            background: var(--danger-light);
+        }
+
+        .calendar-day.missed {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .calendar-day.future {
+            color: var(--gray-300);
+            background: transparent;
+            cursor: default;
+        }
+
+        .calendar-day:active:not(.empty):not(.future) {
+            transform: scale(0.92);
+        }
+
+        /* 범례 */
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-100);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-dot.completed { background: var(--success); }
+        .legend-dot.missed { background: var(--danger-light); border: 1px solid var(--danger); }
+        .legend-dot.holiday { background: var(--danger-light); }
+
+        /* 랭킹 */
+        .ranking-card {
+            background: #FFFFFF;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+        }
+
+        .ranking-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ranking-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .ranking-list {
+            list-style: none;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            background: var(--gray-50);
+            transition: all 0.2s;
+        }
+
+        .ranking-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .ranking-item.rank-1 {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        }
+
+        .ranking-item.rank-2 {
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+        }
+
+        .ranking-item.rank-3 {
+            background: linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%);
+        }
+
+        .ranking-item.is-me {
+            box-shadow: inset 0 0 0 2px var(--primary);
+        }
+
+        .rank-badge {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--gray-600);
+            margin-right: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ranking-item.rank-1 .rank-badge {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white;
+        }
+
+        .ranking-item.rank-2 .rank-badge {
+            background: linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%);
+            color: white;
+        }
+
+        .ranking-item.rank-3 .rank-badge {
+            background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+            color: white;
+        }
+
+        .rank-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rank-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--gray-800);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-stats {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+
+        .rank-penalty {
+            text-align: right;
+        }
+
+        .penalty-amount {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--danger);
+        }
+
+        .penalty-amount.zero {
+            color: var(--success);
+        }
+
+        .penalty-label {
+            font-size: 0.75rem;
+            color: var(--gray-400);
+        }
+
+        /* 토스트 */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--gray-800);
+            color: white;
+            padding: 16px 28px;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 로딩 */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: var(--gray-400);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-400);
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">
+                <span>💪</span>
+            </div>
+            <h1>One Hundred Push-ups</h1>
+            <p>매일 100개 푸시업 챌린지</p>
+        </div>
+
+        <!-- 로그인 화면 -->
+        <div class="login-screen" id="loginScreen">
+            <div class="login-card fade-in">
+                <h2>환영합니다!</h2>
+                <p class="subtitle">이름을 입력하고 챌린지에 참여하세요</p>
+                <div class="input-group">
+                    <label for="nameInput">이름</label>
+                    <input type="text" id="nameInput" placeholder="홍길동" autocomplete="off" autocapitalize="off">
+                </div>
+                <button class="btn" onclick="login()">시작하기</button>
+            </div>
+        </div>
+
+        <!-- 메인 화면 -->
+        <div class="main-screen" id="mainScreen">
+            <div class="user-bar">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">홍</div>
+                    <div>
+                        <div class="user-name" id="userName">홍길동</div>
+                        <div class="user-status">챌린지 진행중</div>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </div>
+
+            <div class="month-select-wrapper">
+                <select class="month-select" id="monthSelect" onchange="loadCalendar()">
+                </select>
+            </div>
+
+            <div class="stats-card fade-in">
+                <div class="stats-header">
+                    <div>
+                        <div class="stats-label">이번 달 벌금</div>
+                        <div class="stats-amount" id="penaltyAmount">₩0</div>
+                    </div>
+                    <div class="stats-badge" id="completionBadge">0%</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="completedDays">0</div>
+                        <div class="stat-label">완료</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="missedDays">0</div>
+                        <div class="stat-label">미완료</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalWorkdays">0</div>
+                        <div class="stat-label">총 평일</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="today-action" id="todayAction">
+                <div class="today-header">
+                    <div class="today-icon" id="todayIcon">📅</div>
+                    <div>
+                        <div class="today-title" id="todayTitle">오늘의 푸시업</div>
+                        <div class="today-date" id="todayDate"></div>
+                    </div>
+                </div>
+                <button class="today-btn" id="todayBtn" onclick="toggleToday()">
+                    100개 완료하기
+                </button>
+            </div>
+
+            <div class="calendar-card fade-in">
+                <div class="calendar-title">이번 달 기록</div>
+                <div class="calendar-header">
+                    <span>일</span>
+                    <span>월</span>
+                    <span>화</span>
+                    <span>수</span>
+                    <span>목</span>
+                    <span>금</span>
+                    <span>토</span>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot completed"></div>
+                        <span>완료</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot missed"></div>
+                        <span>미완료</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot holiday"></div>
+                        <span>휴일</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ranking-card fade-in">
+                <div class="ranking-header">
+                    <span>🏆</span>
+                    <h3>명예의 전당</h3>
+                </div>
+                <ul class="ranking-list" id="rankingList">
+                    <li class="loading">
+                        <div class="spinner"></div>
+                        <span>로딩 중...</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 상태
+        let currentUser = null;
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth() + 1;
+        let calendarData = null;
+        let todayCompleted = false;
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            // 저장된 로그인 정보 확인 (localStorage - 영구 저장)
+            const savedUser = localStorage.getItem('pushupUser');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    showMainScreen();
+                } catch (e) {
+                    localStorage.removeItem('pushupUser');
+                }
+            }
+
+            // 오늘 날짜 표시
+            updateTodayDate();
+
+            // 엔터 키로 로그인
+            document.getElementById('nameInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+        });
+
+        // 오늘 날짜 업데이트
+        function updateTodayDate() {
+            const today = new Date();
+            const options = { month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('todayDate').textContent = today.toLocaleDateString('ko-KR', options);
+        }
+
+        // 로그인
+        async function login() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                showToast('이름을 입력해주세요');
+                nameInput.focus();
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    showToast(error.error || '로그인 실패');
+                    return;
+                }
+
+                currentUser = await res.json();
+                // localStorage에 저장 (브라우저 종료 후에도 유지)
+                localStorage.setItem('pushupUser', JSON.stringify(currentUser));
+                showMainScreen();
+                showToast(`${currentUser.name}님, 환영합니다!`);
+            } catch (err) {
+                showToast('서버 연결에 실패했습니다');
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            localStorage.removeItem('pushupUser');
+            currentUser = null;
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('nameInput').value = '';
+        }
+
+        // 메인 화면 표시
+        async function showMainScreen() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainScreen').classList.add('active');
+
+            // 유저 정보 표시
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
+
+            await loadMonthOptions();
+            await loadCalendar();
+            await loadRanking();
+        }
+
+        // 월 옵션 로드
+        async function loadMonthOptions() {
+            try {
+                const res = await fetch('/api/available-months');
+                const months = await res.json();
+
+                const select = document.getElementById('monthSelect');
+                select.innerHTML = months.map(m =>
+                    `<option value="${m.year}-${m.month}" ${m.year === currentYear && m.month === currentMonth ? 'selected' : ''}>${m.label}</option>`
+                ).join('');
+            } catch (err) {
+                console.error('월 목록 로드 실패:', err);
+            }
+        }
+
+        // 캘린더 로드
+        async function loadCalendar() {
+            const [year, month] = document.getElementById('monthSelect').value.split('-').map(Number);
+            currentYear = year;
+            currentMonth = month;
+
+            try {
+                const res = await fetch(`/api/calendar/${year}/${month}?user_id=${currentUser.id}`);
+                calendarData = await res.json();
+
+                renderCalendar();
+                updateStats();
+                updateTodayAction();
+                await loadRanking();
+            } catch (err) {
+                console.error('캘린더 로드 실패:', err);
+                showToast('데이터 로드에 실패했습니다');
+            }
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            const { penalty, missed_days, total_workdays } = calendarData;
+            const completedDays = total_workdays - missed_days;
+            const rate = total_workdays > 0 ? Math.round(completedDays / total_workdays * 100) : 0;
+
+            document.getElementById('penaltyAmount').textContent = '₩' + penalty.toLocaleString();
+            document.getElementById('completedDays').textContent = completedDays;
+            document.getElementById('missedDays').textContent = missed_days;
+            document.getElementById('totalWorkdays').textContent = total_workdays;
+            document.getElementById('completionBadge').textContent = rate + '%';
+        }
+
+        // 오늘 액션 업데이트
+        function updateTodayAction() {
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            const isCurrentMonth = currentYear === today.getFullYear() && currentMonth === today.getMonth() + 1;
+            const actionEl = document.getElementById('todayAction');
+            const btnEl = document.getElementById('todayBtn');
+            const iconEl = document.getElementById('todayIcon');
+            const titleEl = document.getElementById('todayTitle');
+
+            if (!isCurrentMonth) {
+                actionEl.style.display = 'none';
+                return;
+            }
+
+            actionEl.style.display = 'block';
+            todayCompleted = calendarData.completed_dates.includes(todayStr);
+
+            // 오늘이 평일인지 확인
+            const dayOfWeek = today.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const isHoliday = calendarData.holidays.some(h => h.date === todayStr);
+            const isWorkday = !isWeekend && !isHoliday;
+
+            actionEl.classList.remove('completed', 'not-workday');
+
+            if (!isWorkday) {
+                actionEl.classList.add('not-workday');
+                iconEl.textContent = '🎉';
+                titleEl.textContent = '오늘은 휴일!';
+                btnEl.textContent = '푸쉬업 안해도 돼요';
+                btnEl.disabled = true;
+            } else if (todayCompleted) {
+                actionEl.classList.add('completed');
+                iconEl.textContent = '✅';
+                titleEl.textContent = '오늘 완료!';
+                btnEl.textContent = '취소하기';
+                btnEl.disabled = false;
+            } else {
+                iconEl.textContent = '💪';
+                titleEl.textContent = '오늘의 푸시업';
+                btnEl.textContent = '100개 완료하기';
+                btnEl.disabled = false;
+            }
+        }
+
+        // 오늘 토글
+        async function toggleToday() {
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            try {
+                const res = await fetch('/api/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        date: todayStr
+                    })
+                });
+
+                if (!res.ok) {
+                    const error = await res.json();
+                    showToast(error.error || '처리 실패');
+                    return;
+                }
+
+                const result = await res.json();
+
+                if (result.completed) {
+                    showToast('🎉 100개 완료! 대단해요!');
+                } else {
+                    showToast('기록이 취소되었습니다');
+                }
+
+                await loadCalendar();
+            } catch (err) {
+                showToast('서버 연결에 실패했습니다');
+            }
+        }
+
+        // 캘린더 렌더링
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const { year, month, completed_dates, holidays, first_day_weekday, last_day } = calendarData;
+
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            const holidayDates = holidays.map(h => h.date);
+            const startDay = (first_day_weekday + 1) % 7;
+
+            let html = '';
+
+            // 빈 칸
+            for (let i = 0; i < startDay; i++) {
+                html += '<div class="calendar-day empty"></div>';
+            }
+
+            // 날짜
+            for (let day = 1; day <= last_day; day++) {
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = (startDay + day - 1) % 7;
+
+                const isToday = dateStr === todayStr;
+                const isCompleted = completed_dates.includes(dateStr);
+                const isHoliday = holidayDates.includes(dateStr);
+                const isSunday = dayOfWeek === 0;
+                const isSaturday = dayOfWeek === 6;
+                const isWeekend = isSunday || isSaturday;
+
+                const dateObj = new Date(year, month - 1, day);
+                const isFuture = dateObj > today;
+                const isPast = dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const isWorkday = !isWeekend && !isHoliday;
+                const isMissed = isPast && isWorkday && !isCompleted;
+
+                let classes = ['calendar-day'];
+                if (isToday) classes.push('today');
+                if (isCompleted) classes.push('completed');
+                else if (isHoliday) classes.push('holiday');
+                else if (isSunday) classes.push('sunday');
+                else if (isSaturday) classes.push('saturday');
+                if (isFuture) classes.push('future');
+                if (isMissed) classes.push('missed');
+
+                html += `<div class="${classes.join(' ')}">${day}</div>`;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // 랭킹 로드
+        async function loadRanking() {
+            const list = document.getElementById('rankingList');
+
+            try {
+                const res = await fetch(`/api/ranking?year=${currentYear}&month=${currentMonth}`);
+                const rankings = await res.json();
+
+                if (rankings.length === 0) {
+                    list.innerHTML = '<li class="empty-state"><p>아직 참가자가 없습니다</p></li>';
+                    return;
+                }
+
+                list.innerHTML = rankings.map(r => {
+                    const isMe = currentUser && r.id === currentUser.id;
+                    const rankClass = r.rank <= 3 ? `rank-${r.rank}` : '';
+                    const meClass = isMe ? 'is-me' : '';
+                    const penaltyClass = r.penalty === 0 ? 'zero' : '';
+
+                    return `
+                        <li class="ranking-item ${rankClass} ${meClass}">
+                            <div class="rank-badge">${r.rank}</div>
+                            <div class="rank-info">
+                                <div class="rank-name">${r.name}${isMe ? ' (나)' : ''}</div>
+                                <div class="rank-stats">${r.completed_days}/${r.total_workdays}일 • ${r.completion_rate}%</div>
+                            </div>
+                            <div class="rank-penalty">
+                                <div class="penalty-amount ${penaltyClass}">₩${r.penalty.toLocaleString()}</div>
+                                <div class="penalty-label">벌금</div>
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('랭킹 로드 실패:', err);
+                list.innerHTML = '<li class="empty-state"><p>랭킹을 불러올 수 없습니다</p></li>';
+            }
+        }
+
+        // 토스트 메시지
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
