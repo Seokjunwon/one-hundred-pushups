@@ -16,9 +16,11 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 
 # DATABASE_URL 처리 (Render/Supabase 호환성)
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///pushups.db')
-# Render는 postgres://를 사용하지만 SQLAlchemy는 postgresql://를 요구
+# Render는 postgres://를 사용하지만 SQLAlchemy + psycopg3는 postgresql+psycopg://를 요구
 if database_url.startswith('postgres://'):
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    database_url = database_url.replace('postgres://', 'postgresql+psycopg://', 1)
+elif database_url.startswith('postgresql://'):
+    database_url = database_url.replace('postgresql://', 'postgresql+psycopg://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
