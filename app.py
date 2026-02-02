@@ -173,9 +173,9 @@ def toggle_completion():
 
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
-    # 오늘 날짜만 토글 가능
-    if target_date != date.today():
-        return jsonify({'error': '오늘 날짜만 체크할 수 있습니다'}), 400
+    # 미래 날짜는 체크 불가
+    if target_date > date.today():
+        return jsonify({'error': '미래 날짜는 체크할 수 없습니다'}), 400
 
     # 기존 기록 확인
     record = PushupRecord.query.filter_by(

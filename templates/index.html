@@ -1066,14 +1066,18 @@
         async function toggleToday() {
             const today = new Date();
             const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            await toggleDay(todayStr);
+        }
 
+        // 날짜 토글 (과거/오늘 모두 가능)
+        async function toggleDay(dateStr) {
             try {
                 const res = await fetch('/api/toggle', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         user_id: currentUser.id,
-                        date: todayStr
+                        date: dateStr
                     })
                 });
 
@@ -1142,7 +1146,10 @@
                 if (isFuture) classes.push('future');
                 if (isMissed) classes.push('missed');
 
-                html += `<div class="${classes.join(' ')}">${day}</div>`;
+                // 미래가 아니면 클릭 가능
+                const clickable = !isFuture ? `onclick="toggleDay('${dateStr}')"` : '';
+
+                html += `<div class="${classes.join(' ')}" ${clickable}>${day}</div>`;
             }
 
             grid.innerHTML = html;
