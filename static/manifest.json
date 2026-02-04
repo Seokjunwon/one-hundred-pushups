@@ -1,6 +1,6 @@
 {
-  "name": "One Hundred Push-ups",
-  "short_name": "100 Pushups",
+  "name": "100챌린지",
+  "short_name": "100챌린지",
   "description": "매일 100개 푸시업 챌린지 - 함께 운동하고 기록하세요",
   "start_url": "/",
   "display": "standalone",
