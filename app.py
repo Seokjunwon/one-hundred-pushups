@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, date, timedelta
 from calendar import monthrange
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from models import db, User, PushupRecord
 from whitenoise import WhiteNoise
 import holidays
@@ -90,6 +90,18 @@ def calculate_penalty(user_id, year, month):
 def index():
     """메인 페이지"""
     return render_template('index.html')
+
+
+@app.route('/manifest.json')
+def manifest():
+    """PWA manifest 파일"""
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+
+
+@app.route('/service-worker.js')
+def service_worker():
+    """서비스 워커 파일 (루트에서 제공해야 스코프가 전체 사이트)"""
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
 
 
 @app.route('/api/login', methods=['POST'])

@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-title" content="100 Pushups">
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="description" content="매일 100개 푸시업 챌린지 - 함께 운동하고 기록하세요">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     <title>One Hundred Push-ups</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -679,6 +683,137 @@
             color: var(--gray-400);
         }
 
+        /* 더보기/접기 버튼 */
+        .ranking-toggle {
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .ranking-toggle:active {
+            background: var(--gray-200);
+        }
+
+        .ranking-toggle .arrow {
+            transition: transform 0.3s;
+        }
+
+        .ranking-toggle.expanded .arrow {
+            transform: rotate(180deg);
+        }
+
+        .ranking-item.hidden {
+            display: none;
+        }
+
+        /* PWA 설치 배너 */
+        .pwa-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            padding: 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .pwa-banner.show {
+            transform: translateY(0);
+        }
+
+        .pwa-banner-content {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .pwa-banner-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pwa-banner-icon span {
+            font-size: 28px;
+        }
+
+        .pwa-banner-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pwa-banner-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+
+        .pwa-banner-desc {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+
+        .pwa-banner-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .pwa-install-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .pwa-install-btn:active {
+            transform: scale(0.96);
+        }
+
+        .pwa-dismiss-btn {
+            padding: 8px 12px;
+            background: transparent;
+            color: var(--gray-500);
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+
         /* 토스트 */
         .toast {
             position: fixed;
@@ -873,6 +1008,23 @@
 
     <div class="toast" id="toast"></div>
 
+    <!-- PWA 설치 배너 -->
+    <div class="pwa-banner" id="pwaBanner">
+        <div class="pwa-banner-content">
+            <div class="pwa-banner-icon">
+                <span>💪</span>
+            </div>
+            <div class="pwa-banner-text">
+                <div class="pwa-banner-title">앱으로 설치하기</div>
+                <div class="pwa-banner-desc">홈 화면에 추가하고 더 빠르게 접속하세요</div>
+            </div>
+            <div class="pwa-banner-actions">
+                <button class="pwa-install-btn" id="pwaInstallBtn">설치</button>
+                <button class="pwa-dismiss-btn" id="pwaDismissBtn">나중에</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 상태
         let currentUser = null;
@@ -880,6 +1032,8 @@
         let currentMonth = new Date().getMonth() + 1;
         let calendarData = null;
         let todayCompleted = false;
+        let rankingExpanded = false;
+        let deferredPrompt = null;
 
         // 초기화
         document.addEventListener('DOMContentLoaded', () => {
@@ -1158,6 +1312,7 @@
         // 랭킹 로드
         async function loadRanking() {
             const list = document.getElementById('rankingList');
+            rankingExpanded = false;
 
             try {
                 const res = await fetch(`/api/ranking?year=${currentYear}&month=${currentMonth}`);
@@ -1168,14 +1323,18 @@
                     return;
                 }
 
-                list.innerHTML = rankings.map(r => {
+                const VISIBLE_COUNT = 3;
+                const hasMore = rankings.length > VISIBLE_COUNT;
+
+                let html = rankings.map((r, index) => {
                     const isMe = currentUser && r.id === currentUser.id;
                     const rankClass = r.rank <= 3 ? `rank-${r.rank}` : '';
                     const meClass = isMe ? 'is-me' : '';
                     const penaltyClass = r.penalty === 0 ? 'zero' : '';
+                    const hiddenClass = index >= VISIBLE_COUNT ? 'hidden' : '';
 
                     return `
-                        <li class="ranking-item ${rankClass} ${meClass}">
+                        <li class="ranking-item ${rankClass} ${meClass} ${hiddenClass}" data-rank-index="${index}">
                             <div class="rank-badge">${r.rank}</div>
                             <div class="rank-info">
                                 <div class="rank-name">${r.name}${isMe ? ' (나)' : ''}</div>
@@ -1188,14 +1347,48 @@
                         </li>
                     `;
                 }).join('');
+
+                if (hasMore) {
+                    html += `
+                        <button class="ranking-toggle" id="rankingToggle" onclick="toggleRanking()">
+                            <span>더보기 (${rankings.length - VISIBLE_COUNT}명)</span>
+                            <span class="arrow">▼</span>
+                        </button>
+                    `;
+                }
+
+                list.innerHTML = html;
             } catch (err) {
                 console.error('랭킹 로드 실패:', err);
                 list.innerHTML = '<li class="empty-state"><p>랭킹을 불러올 수 없습니다</p></li>';
             }
         }
 
+        // 랭킹 더보기/접기
+        function toggleRanking() {
+            rankingExpanded = !rankingExpanded;
+            const items = document.querySelectorAll('.ranking-item[data-rank-index]');
+            const toggleBtn = document.getElementById('rankingToggle');
+            const VISIBLE_COUNT = 3;
+
+            items.forEach((item, index) => {
+                if (index >= VISIBLE_COUNT) {
+                    item.classList.toggle('hidden', !rankingExpanded);
+                }
+            });
+
+            if (toggleBtn) {
+                toggleBtn.classList.toggle('expanded', rankingExpanded);
+                const count = items.length - VISIBLE_COUNT;
+                toggleBtn.innerHTML = rankingExpanded
+                    ? '<span>접기</span><span class="arrow">▼</span>'
+                    : `<span>더보기 (${count}명)</span><span class="arrow">▼</span>`;
+            }
+        }
+
         // 토스트 메시지
         function showToast(message) {
+            if (!message) return;
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('show');
@@ -1204,6 +1397,78 @@
                 toast.classList.remove('show');
             }, 2500);
         }
+
+        // PWA 서비스 워커 등록
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    await navigator.serviceWorker.register('/service-worker.js');
+                    console.log('Service Worker 등록 완료');
+                } catch (err) {
+                    console.log('Service Worker 등록 실패:', err);
+                }
+            });
+        }
+
+        // PWA 설치 프롬프트 처리
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // 이전에 닫은 적이 있으면 3일 후에 다시 표시
+            const dismissedAt = localStorage.getItem('pwaDismissedAt');
+            if (dismissedAt) {
+                const daysSinceDismissed = (Date.now() - parseInt(dismissedAt)) / (1000 * 60 * 60 * 24);
+                if (daysSinceDismissed < 3) return;
+            }
+
+            // 이미 설치된 경우 표시하지 않음
+            if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+            // 1.5초 후 배너 표시
+            setTimeout(() => {
+                showPWABanner();
+            }, 1500);
+        });
+
+        // PWA 배너 표시
+        function showPWABanner() {
+            const banner = document.getElementById('pwaBanner');
+            banner.classList.add('show');
+        }
+
+        // PWA 배너 숨기기
+        function hidePWABanner() {
+            const banner = document.getElementById('pwaBanner');
+            banner.classList.remove('show');
+        }
+
+        // PWA 설치 버튼 클릭
+        document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+
+            hidePWABanner();
+            deferredPrompt.prompt();
+
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                showToast('앱이 설치되었습니다! 🎉');
+            }
+            deferredPrompt = null;
+        });
+
+        // PWA 나중에 버튼 클릭
+        document.getElementById('pwaDismissBtn').addEventListener('click', () => {
+            hidePWABanner();
+            localStorage.setItem('pwaDismissedAt', Date.now().toString());
+        });
+
+        // 이미 설치된 앱에서 실행 시
+        window.addEventListener('appinstalled', () => {
+            hidePWABanner();
+            deferredPrompt = null;
+            showToast('홈 화면에 추가되었습니다!');
+        });
     </script>
 </body>
 </html>
