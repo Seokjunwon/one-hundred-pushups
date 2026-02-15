@@ -313,21 +313,36 @@ def get_ranking():
     _, last_day = monthrange(year, month)
     end_date = date(year, month, last_day)
 
+    workdays = get_month_workdays(year, month)
+    total_workdays = len(workdays)
+    workdays_set = set(workdays)
+
     users = User.query.all()
+
+    # 한 번의 쿼리로 해당 월의 모든 기록 가져오기
+    all_records = PushupRecord.query.filter(
+        PushupRecord.date >= start_date,
+        PushupRecord.date <= end_date
+    ).all()
+
+    # 유저별로 분류
+    user_completed = {}  # user_id -> set of completed dates
+    user_first_check = {}  # user_id -> earliest created_at
+
+    for record in all_records:
+        uid = record.user_id
+        if record.completed:
+            user_completed.setdefault(uid, set()).add(record.date)
+        if uid not in user_first_check or record.created_at < user_first_check[uid]:
+            user_first_check[uid] = record.created_at
+
     rankings = []
-
     for user in users:
-        penalty, missed_days, total_workdays = calculate_penalty(user.id, year, month)
-        completed_days = total_workdays - missed_days
-
-        # 해당 월의 첫 체크 시간 조회 (먼저 체크한 사람 우선)
-        first_record = PushupRecord.query.filter(
-            PushupRecord.user_id == user.id,
-            PushupRecord.date >= start_date,
-            PushupRecord.date <= end_date
-        ).order_by(PushupRecord.created_at.asc()).first()
-
-        first_check_time = first_record.created_at if first_record else datetime.max
+        completed_set = user_completed.get(user.id, set())
+        missed_count = len(workdays_set - completed_set)
+        completed_days = total_workdays - missed_count
+        penalty = missed_count * 10000
+        first_check_time = user_first_check.get(user.id, datetime.max)
 
         rankings.append({
             'id': user.id,
@@ -345,7 +360,6 @@ def get_ranking():
     # 순위 부여 (1, 2, 3등 순차적으로)
     for i, r in enumerate(rankings):
         r['rank'] = i + 1
-        # first_check_time은 JSON 직렬화에서 제외
         del r['first_check_time']
 
     return jsonify(rankings)
@@ -393,14 +407,24 @@ def get_assets():
         value_krw = round(value_usd * usd_krw)
         total_stock_value_usd += value_usd
 
+        cost_usd = s.avg_price * s.shares
+        gain_usd = value_usd - cost_usd
+        gain_krw = round(gain_usd * usd_krw)
+        gain_percent = round((gain_usd / cost_usd * 100), 2) if cost_usd > 0 else 0
+
         stock_list.append({
             'id': s.id,
             'symbol': s.symbol,
             'shares': s.shares,
+            'avg_price': s.avg_price,
             'current_price': current_price,
             'change_percent': round(change_percent, 2),
             'value_usd': round(value_usd, 2),
             'value_krw': value_krw,
+            'cost_usd': round(cost_usd, 2),
+            'gain_usd': round(gain_usd, 2),
+            'gain_krw': gain_krw,
+            'gain_percent': gain_percent,
         })
 
     cash = CashAsset.query.first()
@@ -439,15 +463,21 @@ def add_stock():
 
     symbol = data.get('symbol', '').strip().upper()
     shares = data.get('shares', 0)
+    avg_price = data.get('avg_price', 0)
 
     if not symbol or shares <= 0:
         return jsonify({'error': '종목코드와 수량을 올바르게 입력해주세요'}), 400
 
-    stock = StockHolding(symbol=symbol, shares=shares, added_by=user_id)
+    try:
+        avg_price = float(avg_price)
+    except (ValueError, TypeError):
+        avg_price = 0
+
+    stock = StockHolding(symbol=symbol, shares=shares, avg_price=avg_price, added_by=user_id)
     db.session.add(stock)
     db.session.commit()
 
-    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares})
+    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares, 'avg_price': stock.avg_price})
 
 
 @app.route('/api/admin/stock/<int:stock_id>', methods=['PUT'])
@@ -464,13 +494,19 @@ def update_stock(stock_id):
         return jsonify({'error': '종목을 찾을 수 없습니다'}), 404
 
     shares = data.get('shares', 0)
+    avg_price = data.get('avg_price')
     if shares <= 0:
         return jsonify({'error': '수량을 올바르게 입력해주세요'}), 400
 
     stock.shares = shares
+    if avg_price is not None:
+        try:
+            stock.avg_price = float(avg_price)
+        except (ValueError, TypeError):
+            pass
     db.session.commit()
 
-    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares})
+    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares, 'avg_price': stock.avg_price})
 
 
 @app.route('/api/admin/stock/<int:stock_id>', methods=['DELETE'])

@@ -1796,9 +1796,7 @@
             document.getElementById('adminBtn').style.display = currentUser.is_admin ? 'flex' : 'none';
 
             await loadMonthOptions();
-            await loadCalendar();
-            await loadRanking();
-            await loadAssets();
+            await Promise.all([loadCalendar(), loadRanking(), loadAssets()]);
 
             // 1분마다 자산 갱신
             if (assetRefreshTimer) clearInterval(assetRefreshTimer);
