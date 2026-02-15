@@ -92,6 +92,37 @@ def get_stock_price(symbol):
     return _price_cache.get(symbol, (0, None))[1]
 
 
+# 환율 캐시 (5분 TTL)
+_exchange_rate_cache = {'time': 0, 'rate': 0}
+EXCHANGE_RATE_CACHE_TTL = 300
+
+
+def get_usd_krw_rate():
+    """USD/KRW 환율 조회 (캐시 포함)"""
+    now = time.time()
+    if _exchange_rate_cache['rate'] and now - _exchange_rate_cache['time'] < EXCHANGE_RATE_CACHE_TTL:
+        return _exchange_rate_cache['rate']
+
+    try:
+        resp = http_requests.get(
+            'https://open.er-api.com/v6/latest/USD',
+            timeout=5
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            rate = data.get('rates', {}).get('KRW', 0)
+            if rate > 0:
+                _exchange_rate_cache['time'] = now
+                _exchange_rate_cache['rate'] = rate
+                return rate
+    except Exception:
+        pass
+
+    if _exchange_rate_cache['rate']:
+        return _exchange_rate_cache['rate']
+    return 1350  # 폴백 기본값
+
+
 def is_admin(user_name):
     """관리자 여부 확인"""
     return user_name in ADMIN_USERS
@@ -346,17 +377,21 @@ def get_available_months():
 
 @app.route('/api/assets')
 def get_assets():
-    """전체 자산 조회 (실시간 주가 포함)"""
+    """전체 자산 조회 (실시간 주가 + 환율 포함)"""
     stocks = StockHolding.query.all()
     stock_list = []
-    total_stock_value = 0
+    total_stock_value_usd = 0
+
+    usd_krw = get_usd_krw_rate()
+    now_str = datetime.utcnow().strftime('%Y.%m.%d %H:%M')
 
     for s in stocks:
         price_data = get_stock_price(s.symbol)
         current_price = price_data['c'] if price_data else 0
         change_percent = price_data['dp'] if price_data else 0
-        value = current_price * s.shares
-        total_stock_value += value
+        value_usd = current_price * s.shares
+        value_krw = round(value_usd * usd_krw)
+        total_stock_value_usd += value_usd
 
         stock_list.append({
             'id': s.id,
@@ -364,18 +399,23 @@ def get_assets():
             'shares': s.shares,
             'current_price': current_price,
             'change_percent': round(change_percent, 2),
-            'value': round(value, 2),
+            'value_usd': round(value_usd, 2),
+            'value_krw': value_krw,
         })
 
     cash = CashAsset.query.first()
-    cash_amount = cash.amount if cash else 0
-    total_assets = round(total_stock_value + cash_amount, 2)
+    cash_krw = cash.amount if cash else 0
+    total_stock_krw = round(total_stock_value_usd * usd_krw)
+    total_assets_krw = total_stock_krw + cash_krw
 
     return jsonify({
         'stocks': stock_list,
-        'cash': cash_amount,
-        'total_stock_value': round(total_stock_value, 2),
-        'total_assets': total_assets,
+        'cash_krw': cash_krw,
+        'total_stock_usd': round(total_stock_value_usd, 2),
+        'total_stock_krw': total_stock_krw,
+        'total_assets_krw': total_assets_krw,
+        'usd_krw': round(usd_krw, 2),
+        'updated_at': now_str,
     })
 
 
@@ -462,6 +502,10 @@ def update_cash():
         return jsonify({'error': '권한이 없습니다'}), 403
 
     amount = data.get('amount', 0)
+    try:
+        amount = int(amount)
+    except (ValueError, TypeError):
+        return jsonify({'error': '금액을 올바르게 입력해주세요'}), 400
     if amount < 0:
         return jsonify({'error': '금액을 올바르게 입력해주세요'}), 400
 
@@ -546,7 +590,7 @@ def test_finnhub_key():
         if resp.status_code == 200:
             data = resp.json()
             if data.get('c', 0) > 0:
-                return jsonify({'success': True, 'message': f'연결 성공! AAPL 현재가: ${data["c"]}'})
+                return jsonify({'success': True, 'message': '연결 성공!'})
             else:
                 return jsonify({'success': False, 'message': '잘못된 API 키입니다'})
         elif resp.status_code == 401:
@@ -555,6 +599,54 @@ def test_finnhub_key():
             return jsonify({'success': False, 'message': f'API 오류 (HTTP {resp.status_code})'})
     except Exception as e:
         return jsonify({'success': False, 'message': '연결 실패: 네트워크 오류'})
+
+
+@app.route('/api/admin/save-all', methods=['POST'])
+def save_all_settings():
+    """관리자 설정 일괄 저장"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id) if user_id else None
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    saved = []
+
+    # API 키 저장
+    api_key = data.get('api_key', '').strip()
+    if api_key:
+        config = SiteConfig.query.filter_by(key='FINNHUB_API_KEY').first()
+        if config:
+            config.value = api_key
+            config.updated_by = user_id
+        else:
+            config = SiteConfig(key='FINNHUB_API_KEY', value=api_key, updated_by=user_id)
+            db.session.add(config)
+        _price_cache.clear()
+        saved.append('API 키')
+
+    # 현금 저장
+    cash_amount = data.get('cash_amount')
+    if cash_amount is not None:
+        try:
+            cash_amount = int(cash_amount)
+        except (ValueError, TypeError):
+            cash_amount = 0
+        if cash_amount >= 0:
+            cash = CashAsset.query.first()
+            if cash:
+                cash.amount = cash_amount
+                cash.updated_by = user_id
+            else:
+                cash = CashAsset(amount=cash_amount, updated_by=user_id)
+                db.session.add(cash)
+            saved.append('현금 자산')
+
+    db.session.commit()
+
+    if saved:
+        return jsonify({'success': True, 'message': ', '.join(saved) + ' 저장 완료'})
+    return jsonify({'success': True, 'message': '변경 사항 없음'})
 
 
 # DB 테이블 생성
