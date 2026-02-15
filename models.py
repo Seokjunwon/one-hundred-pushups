@@ -36,3 +36,31 @@ class PushupRecord(db.Model):
 
     def __repr__(self):
         return f'<PushupRecord {self.user_id} - {self.date}>'
+
+
+class StockHolding(db.Model):
+    """주식 보유 모델"""
+    __tablename__ = 'stock_holdings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(20), nullable=False)
+    shares = db.Column(db.Integer, nullable=False)
+    added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<StockHolding {self.symbol} x{self.shares}>'
+
+
+class CashAsset(db.Model):
+    """현금 자산 모델 (단일 행)"""
+    __tablename__ = 'cash_assets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float, nullable=False, default=0)
+    updated_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CashAsset ₩{self.amount}>'

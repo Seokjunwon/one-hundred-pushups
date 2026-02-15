@@ -1,10 +1,12 @@
 import os
+import time
 from datetime import datetime, date, timedelta
 from calendar import monthrange
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from models import db, User, PushupRecord
+from models import db, User, PushupRecord, StockHolding, CashAsset
 from whitenoise import WhiteNoise
 import holidays
+import requests as http_requests
 
 app = Flask(__name__)
 
@@ -33,6 +35,54 @@ db.init_app(app)
 
 # 한국 공휴일
 kr_holidays = holidays.KR()
+
+# 관리자 목록
+ADMIN_USERS = ["원석준", "김병석"]
+
+# Finnhub API 설정
+FINNHUB_API_KEY = os.environ.get('FINNHUB_API_KEY', '')
+
+# 주가 캐시 (60초 TTL)
+_price_cache = {}
+PRICE_CACHE_TTL = 60
+
+
+def get_stock_price(symbol):
+    """Finnhub에서 주가 조회 (캐시 포함)"""
+    now = time.time()
+    if symbol in _price_cache:
+        cached_time, cached_data = _price_cache[symbol]
+        if now - cached_time < PRICE_CACHE_TTL:
+            return cached_data
+
+    if not FINNHUB_API_KEY:
+        return None
+
+    try:
+        resp = http_requests.get(
+            f'https://finnhub.io/api/v1/quote',
+            params={'symbol': symbol, 'token': FINNHUB_API_KEY},
+            timeout=5
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            result = {
+                'c': data.get('c', 0),    # 현재가
+                'dp': data.get('dp', 0),   # 변동률%
+                'd': data.get('d', 0),     # 변동액
+                'pc': data.get('pc', 0),   # 전일 종가
+            }
+            _price_cache[symbol] = (now, result)
+            return result
+    except Exception:
+        pass
+
+    return _price_cache.get(symbol, (0, None))[1]
+
+
+def is_admin(user_name):
+    """관리자 여부 확인"""
+    return user_name in ADMIN_USERS
 
 
 def is_workday(check_date):
@@ -122,7 +172,8 @@ def login():
 
     return jsonify({
         'id': user.id,
-        'name': user.name
+        'name': user.name,
+        'is_admin': is_admin(user.name)
     })
 
 
@@ -279,6 +330,140 @@ def get_available_months():
         })
 
     return jsonify(months)
+
+
+@app.route('/api/assets')
+def get_assets():
+    """전체 자산 조회 (실시간 주가 포함)"""
+    stocks = StockHolding.query.all()
+    stock_list = []
+    total_stock_value = 0
+
+    for s in stocks:
+        price_data = get_stock_price(s.symbol)
+        current_price = price_data['c'] if price_data else 0
+        change_percent = price_data['dp'] if price_data else 0
+        value = current_price * s.shares
+        total_stock_value += value
+
+        stock_list.append({
+            'id': s.id,
+            'symbol': s.symbol,
+            'shares': s.shares,
+            'current_price': current_price,
+            'change_percent': round(change_percent, 2),
+            'value': round(value, 2),
+        })
+
+    cash = CashAsset.query.first()
+    cash_amount = cash.amount if cash else 0
+    total_assets = round(total_stock_value + cash_amount, 2)
+
+    return jsonify({
+        'stocks': stock_list,
+        'cash': cash_amount,
+        'total_stock_value': round(total_stock_value, 2),
+        'total_assets': total_assets,
+    })
+
+
+@app.route('/api/stock-price/<symbol>')
+def get_stock_price_api(symbol):
+    """주가 프록시"""
+    price_data = get_stock_price(symbol.upper())
+    if price_data is None:
+        return jsonify({'error': '주가 조회 실패'}), 500
+    return jsonify(price_data)
+
+
+@app.route('/api/admin/stock', methods=['POST'])
+def add_stock():
+    """주식 종목 추가 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id)
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    symbol = data.get('symbol', '').strip().upper()
+    shares = data.get('shares', 0)
+
+    if not symbol or shares <= 0:
+        return jsonify({'error': '종목코드와 수량을 올바르게 입력해주세요'}), 400
+
+    stock = StockHolding(symbol=symbol, shares=shares, added_by=user_id)
+    db.session.add(stock)
+    db.session.commit()
+
+    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares})
+
+
+@app.route('/api/admin/stock/<int:stock_id>', methods=['PUT'])
+def update_stock(stock_id):
+    """주식 수량 수정 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id)
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    stock = db.session.get(StockHolding, stock_id)
+    if not stock:
+        return jsonify({'error': '종목을 찾을 수 없습니다'}), 404
+
+    shares = data.get('shares', 0)
+    if shares <= 0:
+        return jsonify({'error': '수량을 올바르게 입력해주세요'}), 400
+
+    stock.shares = shares
+    db.session.commit()
+
+    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares})
+
+
+@app.route('/api/admin/stock/<int:stock_id>', methods=['DELETE'])
+def delete_stock(stock_id):
+    """주식 종목 삭제 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id)
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    stock = db.session.get(StockHolding, stock_id)
+    if not stock:
+        return jsonify({'error': '종목을 찾을 수 없습니다'}), 404
+
+    db.session.delete(stock)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@app.route('/api/admin/cash', methods=['PUT'])
+def update_cash():
+    """현금 자산 수정 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id)
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    amount = data.get('amount', 0)
+    if amount < 0:
+        return jsonify({'error': '금액을 올바르게 입력해주세요'}), 400
+
+    cash = CashAsset.query.first()
+    if cash:
+        cash.amount = amount
+        cash.updated_by = user_id
+    else:
+        cash = CashAsset(amount=amount, updated_by=user_id)
+        db.session.add(cash)
+
+    db.session.commit()
+
+    return jsonify({'amount': cash.amount})
 
 
 # DB 테이블 생성

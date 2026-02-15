@@ -12,3 +12,5 @@ services:
         generateValue: true
       - key: DATABASE_URL
         sync: false  # Supabase에서 직접 설정
+      - key: FINNHUB_API_KEY
+        sync: false
