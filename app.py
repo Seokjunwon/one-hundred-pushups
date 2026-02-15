@@ -3,7 +3,7 @@ import time
 from datetime import datetime, date, timedelta
 from calendar import monthrange
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from models import db, User, PushupRecord, StockHolding, CashAsset
+from models import db, User, PushupRecord, StockHolding, CashAsset, SiteConfig
 from whitenoise import WhiteNoise
 import holidays
 import requests as http_requests
@@ -39,8 +39,19 @@ kr_holidays = holidays.KR()
 # 관리자 목록
 ADMIN_USERS = ["원석준", "김병석"]
 
-# Finnhub API 설정
-FINNHUB_API_KEY = os.environ.get('FINNHUB_API_KEY', '')
+# Finnhub API 설정 (환경변수는 폴백용)
+FINNHUB_API_KEY_ENV = os.environ.get('FINNHUB_API_KEY', '')
+
+
+def get_finnhub_api_key():
+    """DB에서 API 키 조회, 없으면 환경변수 폴백"""
+    try:
+        config = SiteConfig.query.filter_by(key='FINNHUB_API_KEY').first()
+        if config and config.value:
+            return config.value
+    except Exception:
+        pass
+    return FINNHUB_API_KEY_ENV
 
 # 주가 캐시 (60초 TTL)
 _price_cache = {}
@@ -55,13 +66,14 @@ def get_stock_price(symbol):
         if now - cached_time < PRICE_CACHE_TTL:
             return cached_data
 
-    if not FINNHUB_API_KEY:
+    api_key = get_finnhub_api_key()
+    if not api_key:
         return None
 
     try:
         resp = http_requests.get(
             f'https://finnhub.io/api/v1/quote',
-            params={'symbol': symbol, 'token': FINNHUB_API_KEY},
+            params={'symbol': symbol, 'token': api_key},
             timeout=5
         )
         if resp.status_code == 200:
@@ -464,6 +476,85 @@ def update_cash():
     db.session.commit()
 
     return jsonify({'amount': cash.amount})
+
+
+@app.route('/api/admin/finnhub-key', methods=['GET'])
+def get_finnhub_key():
+    """Finnhub API 키 상태 조회 (관리자 전용)"""
+    user_id = request.args.get('user_id', type=int)
+    user = db.session.get(User, user_id) if user_id else None
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    api_key = get_finnhub_api_key()
+    if api_key:
+        masked = api_key[:4] + '*' * (len(api_key) - 8) + api_key[-4:] if len(api_key) > 8 else '****'
+        return jsonify({'has_key': True, 'masked_key': masked})
+    return jsonify({'has_key': False, 'masked_key': ''})
+
+
+@app.route('/api/admin/finnhub-key', methods=['PUT'])
+def save_finnhub_key():
+    """Finnhub API 키 저장 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id) if user_id else None
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    api_key = data.get('api_key', '').strip()
+    if not api_key:
+        return jsonify({'error': 'API 키를 입력해주세요'}), 400
+
+    config = SiteConfig.query.filter_by(key='FINNHUB_API_KEY').first()
+    if config:
+        config.value = api_key
+        config.updated_by = user_id
+    else:
+        config = SiteConfig(key='FINNHUB_API_KEY', value=api_key, updated_by=user_id)
+        db.session.add(config)
+
+    db.session.commit()
+
+    # 캐시 초기화
+    _price_cache.clear()
+
+    return jsonify({'success': True})
+
+
+@app.route('/api/admin/finnhub-test', methods=['POST'])
+def test_finnhub_key():
+    """Finnhub API 키 연결 테스트 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id) if user_id else None
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    api_key = data.get('api_key', '').strip()
+    if not api_key:
+        api_key = get_finnhub_api_key()
+    if not api_key:
+        return jsonify({'success': False, 'message': 'API 키가 없습니다'}), 400
+
+    try:
+        resp = http_requests.get(
+            'https://finnhub.io/api/v1/quote',
+            params={'symbol': 'AAPL', 'token': api_key},
+            timeout=5
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get('c', 0) > 0:
+                return jsonify({'success': True, 'message': f'연결 성공! AAPL 현재가: ${data["c"]}'})
+            else:
+                return jsonify({'success': False, 'message': '잘못된 API 키입니다'})
+        elif resp.status_code == 401:
+            return jsonify({'success': False, 'message': '잘못된 API 키입니다'})
+        else:
+            return jsonify({'success': False, 'message': f'API 오류 (HTTP {resp.status_code})'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': '연결 실패: 네트워크 오류'})
 
 
 # DB 테이블 생성

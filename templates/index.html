@@ -1255,6 +1255,115 @@
             color: var(--gray-400);
             margin-top: 6px;
         }
+
+        /* API 키 관리 */
+        .api-key-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .api-key-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .api-key-dot.connected {
+            background: var(--success);
+        }
+
+        .api-key-dot.disconnected {
+            background: var(--danger);
+        }
+
+        .api-key-status-text {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .api-key-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .api-key-form input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: monospace;
+            background: var(--gray-50);
+        }
+
+        .api-key-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #FFFFFF;
+        }
+
+        .api-key-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .api-key-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-test {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-test:active {
+            background: var(--gray-200);
+        }
+
+        .btn-save-key {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-save-key:active {
+            opacity: 0.9;
+        }
+
+        .test-result {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .test-result.success {
+            display: block;
+            background: var(--success-light);
+            color: #065F46;
+        }
+
+        .test-result.error {
+            display: block;
+            background: var(--danger-light);
+            color: var(--danger);
+        }
     </style>
 </head>
 <body>
@@ -1433,6 +1542,22 @@
             <button class="sheet-close" onclick="closeAdminSheet()">&times;</button>
         </div>
         <div class="sheet-body">
+            <div class="sheet-section" id="apiKeySection">
+                <div class="sheet-section-title">Finnhub API 키</div>
+                <div class="api-key-status" id="apiKeyStatus">
+                    <div class="api-key-dot disconnected" id="apiKeyDot"></div>
+                    <span class="api-key-status-text" id="apiKeyStatusText">키 미설정</span>
+                </div>
+                <div class="api-key-form">
+                    <input type="password" id="apiKeyInput" placeholder="API 키 입력">
+                </div>
+                <div class="api-key-actions">
+                    <button class="btn-test" onclick="testFinnhubKey()">연결 확인</button>
+                    <button class="btn-save-key" onclick="saveFinnhubKey()">저장</button>
+                </div>
+                <div class="test-result" id="apiTestResult"></div>
+                <p class="admin-hint">finnhub.io에서 무료 API 키를 발급받으세요</p>
+            </div>
             <div class="sheet-section">
                 <div class="sheet-section-title">주식 추가</div>
                 <div class="admin-form">
@@ -1879,11 +2004,90 @@
             }
         }
 
+        // API 키 상태 로드
+        async function loadApiKeyStatus() {
+            try {
+                const res = await fetch(`/api/admin/finnhub-key?user_id=${currentUser.id}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const dot = document.getElementById('apiKeyDot');
+                const text = document.getElementById('apiKeyStatusText');
+                if (data.has_key) {
+                    dot.className = 'api-key-dot connected';
+                    text.textContent = '설정됨: ' + data.masked_key;
+                } else {
+                    dot.className = 'api-key-dot disconnected';
+                    text.textContent = '키 미설정';
+                }
+            } catch (err) {
+                console.error('API 키 상태 로드 실패:', err);
+            }
+        }
+
+        // Finnhub API 키 연결 테스트
+        async function testFinnhubKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const resultEl = document.getElementById('apiTestResult');
+            resultEl.className = 'test-result';
+            resultEl.style.display = 'block';
+            resultEl.textContent = '테스트 중...';
+            resultEl.style.background = 'var(--gray-100)';
+            resultEl.style.color = 'var(--gray-600)';
+
+            try {
+                const res = await fetch('/api/admin/finnhub-test', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: currentUser.id, api_key: apiKey || ''})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    resultEl.className = 'test-result success';
+                    resultEl.textContent = data.message;
+                } else {
+                    resultEl.className = 'test-result error';
+                    resultEl.textContent = data.message;
+                }
+            } catch (err) {
+                resultEl.className = 'test-result error';
+                resultEl.textContent = '연결 실패: 네트워크 오류';
+            }
+        }
+
+        // Finnhub API 키 저장
+        async function saveFinnhubKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                showToast('API 키를 입력해주세요');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/finnhub-key', {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: currentUser.id, api_key: apiKey})
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    showToast(err.error || '저장 실패');
+                    return;
+                }
+                showToast('API 키 저장 완료');
+                document.getElementById('apiKeyInput').value = '';
+                await loadApiKeyStatus();
+                await loadAssets();
+            } catch (err) {
+                showToast('서버 연결 실패');
+            }
+        }
+
         // 관리자 모달 열기
         function openAdminSheet() {
             document.getElementById('adminOverlay').classList.add('show');
             document.getElementById('adminSheet').classList.add('show');
             loadAssets();
+            loadApiKeyStatus();
         }
 
         // 관리자 모달 닫기

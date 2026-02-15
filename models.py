@@ -64,3 +64,14 @@ class CashAsset(db.Model):
 
     def __repr__(self):
         return f'<CashAsset ₩{self.amount}>'
+
+
+class SiteConfig(db.Model):
+    """사이트 설정 (key-value)"""
+    __tablename__ = 'site_config'
+
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False)
+    updated_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
