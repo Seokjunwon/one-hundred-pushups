@@ -804,8 +804,28 @@
         }
 
         .ranking-item.rank-1 {
-            background: #FFFBEB;
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
             border-left-color: #F59E0B;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ranking-item.rank-1::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(251, 191, 36, 0.35) 50%, transparent 100%);
+            animation: shimmer 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
         }
 
         .ranking-item.rank-2 {
@@ -846,6 +866,13 @@
         .ranking-item.rank-1 .rank-badge {
             background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
             color: white;
+            animation: badgePulse 2s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.6); transform: scale(1.08); }
         }
 
         .ranking-item.rank-2 .rank-badge {

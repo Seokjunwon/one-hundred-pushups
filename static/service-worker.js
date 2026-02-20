@@ -1,5 +1,5 @@
-const CACHE_NAME = 'pushups-v11';
-const STATIC_CACHE = 'pushups-static-v11';
+const CACHE_NAME = 'pushups-v12';
+const STATIC_CACHE = 'pushups-static-v12';
 
 // 캐시할 정적 리소스
 const STATIC_ASSETS = [
