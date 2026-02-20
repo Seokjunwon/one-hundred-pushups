@@ -508,17 +508,19 @@
         .today-icon {
             width: 52px;
             height: 52px;
-            background: var(--primary-light);
+            background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
             transition: all 0.2s ease;
+            border: 1px solid rgba(91, 33, 182, 0.08);
         }
 
         .today-action.completed .today-icon {
-            background: #D1FAE5;
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            border-color: rgba(16, 185, 129, 0.1);
         }
 
         .today-title {
@@ -572,12 +574,13 @@
             margin-bottom: 16px;
             box-shadow: var(--shadow-card);
             border: 1px solid var(--border-light);
+            border-top: 3px solid var(--primary);
         }
 
         .calendar-title {
             font-size: 1.05rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--primary-dark);
             margin-bottom: 20px;
         }
 
@@ -721,6 +724,7 @@
             padding: 24px;
             box-shadow: var(--shadow-card);
             border: 1px solid var(--border-light);
+            border-top: 3px solid var(--primary);
         }
 
         .ranking-header {
@@ -733,7 +737,7 @@
         .ranking-header h3 {
             font-size: 1.05rem;
             font-weight: 700;
-            color: var(--text-primary);
+            color: var(--primary-dark);
         }
 
         .ranking-list {
@@ -1155,7 +1159,7 @@
 
         .event-participant-item.is-me {
             background: var(--primary-light);
-            border-left: 3px solid var(--primary);
+            box-shadow: inset 3px 0 0 var(--primary);
         }
 
         /* ===== ADMIN EVENT FORM ===== */
@@ -1240,6 +1244,7 @@
             margin-top: 16px;
             box-shadow: var(--shadow-card);
             border: 1px solid var(--border-light);
+            border-top: 3px solid var(--primary);
         }
 
         .asset-header {
