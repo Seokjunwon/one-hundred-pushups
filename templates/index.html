@@ -2815,7 +2815,7 @@
                             ${sparkleHtml}
                             <div class="rank-badge">${r.rank}</div>
                             <div class="rank-info">
-                                <div class="rank-name">${r.name}${isMe ? ' (나)' : ''}</div>
+                                <div class="rank-name">${r.name}${isMe ? ' (나)' : ''}${r.rank === 1 ? ' 멋지다' : ''}</div>
                                 <div class="rank-stats">${r.completed_days}/${r.total_workdays}일 • ${r.completion_rate}%</div>
                             </div>
                             <div class="rank-penalty">
