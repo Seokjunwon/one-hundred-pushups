@@ -24,7 +24,7 @@
 | `templates/index.html` | 단일 파일 프론트엔드 (HTML + CSS + JS, ~3100줄) |
 | `requirements.txt` | Python 의존성 |
 | `render.yaml` | Render 배포 설정 |
-| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v10**) |
+| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v14**) |
 | `static/manifest.json` | PWA 매니페스트 (theme_color: #4C1D95) |
 | `static/icons/` | PWA 아이콘 (72~512px, "100" 텍스트 + 딥퍼플 그라데이션) |
 | `memory/` | 세션 메모리 시스템 |
@@ -39,8 +39,10 @@
 - `--primary-light`: #EDE9FE
 - `--primary-gradient`: linear-gradient(135deg, #4C1D95 → #7C3AED)
 - **헤더**: 딥퍼플 그라데이션 배경 + 흰색 텍스트
-- **카드**: 흰색 바탕 + 상단 3px 퍼플 악센트 (캘린더, 명예의전당, 보유자산)
+- **카드**: 흰색 바탕 + ::before 퍼플 그라데이션 오버레이 + 링 쉐도우 (캘린더, 명예의전당, 보유자산)
 - **벌금 카드**: 다크 퍼플 그라데이션 (#2E1065 → #6D28D9)
+- **자산 총액**: 딥퍼플 그라데이션 (#2E1065 → #4C1D95 → #6D28D9) + radial 글로우
+- **명예의전당 1위**: 골드 배경 + 별(✦) 트윙클 10개 + 폭죽 burst 3개 + "멋지다" 자동 표시
 - **PWA 아이콘**: "100" 텍스트 로고 + 딥퍼플 그라데이션 (Pillow 생성)
 
 ---
@@ -112,12 +114,13 @@
 ## 최근 커밋 히스토리
 
 ```
+e1b8a07 UI: 명예의전당 1위 이름 뒤에 '멋지다' 자동 표시
+9b5fe18 UI: 1위 효과 개선 - 별 반짝임 + 폭죽 이펙트로 교체
+a910e0f UI: 명예의전당 1등 반짝이 효과 추가
+76a2c6e UI: 카드 디자인 리뉴얼 - 퍼플 글로우 + 자산 총액 퍼플 통일
 d74a709 UI: 컨셉컬러 통일 + 참석명단 컬러 오버플로 수정
-37e0ab6 Fix: 서비스워커 캐시 v9
 ca4f8dc Feature: D-Day 이벤트 기능 추가 (공지바 + 참석 관리)
 6137c88 UI: PWA 아이콘 리디자인 + 딥퍼플 컬러 테마 적용
-6c146be Fix: DB 마이그레이션 추가 + UI 전면 리디자인
-a5dd2cd Fix: 주식 추가 버그 수정 + 회원 관리 기능 추가
 ```
 
 ---
@@ -125,7 +128,7 @@ a5dd2cd Fix: 주식 추가 버그 수정 + 회원 관리 기능 추가
 ## 주의사항
 
 - `models.py`의 `avg_price` 컬럼 추가는 **취소됨** (절대 추가하지 말 것)
-- 서비스 워커 캐시 변경 시 `CACHE_NAME`과 `STATIC_CACHE` **둘 다** 업데이트 필요 (현재 v10)
+- 서비스 워커 캐시 변경 시 `CACHE_NAME`과 `STATIC_CACHE` **둘 다** 업데이트 필요 (현재 v14)
 - `db.create_all()`은 새 테이블만 생성, 기존 테이블 컬럼 변경 불가
 - 기존 사용자 영향 없도록 backward-compatible 개발 필수
 - 벌금계좌: (카카오)7942-14-57728 김병석
