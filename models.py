@@ -45,6 +45,7 @@ class StockHolding(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(20), nullable=False)
     shares = db.Column(db.Integer, nullable=False)
+    avg_price = db.Column(db.Float, nullable=False, default=0)
     added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -685,6 +685,47 @@ def save_all_settings():
     return jsonify({'success': True, 'message': '변경 사항 없음'})
 
 
+@app.route('/api/admin/users')
+def get_users():
+    """전체 회원 목록 (관리자 전용)"""
+    user_id = request.args.get('user_id', type=int)
+    user = db.session.get(User, user_id) if user_id else None
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    users = User.query.order_by(User.created_at).all()
+    return jsonify([{
+        'id': u.id,
+        'name': u.name,
+        'is_admin': is_admin(u.name),
+        'created_at': u.created_at.strftime('%Y-%m-%d') if u.created_at else ''
+    } for u in users])
+
+
+@app.route('/api/admin/user/<int:target_id>', methods=['DELETE'])
+def delete_user(target_id):
+    """회원 삭제 (관리자 전용)"""
+    data = request.get_json()
+    admin_user_id = data.get('user_id')
+    admin_user = db.session.get(User, admin_user_id) if admin_user_id else None
+    if not admin_user or not is_admin(admin_user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    target = db.session.get(User, target_id)
+    if not target:
+        return jsonify({'error': '사용자를 찾을 수 없습니다'}), 404
+
+    if is_admin(target.name):
+        return jsonify({'error': '관리자는 삭제할 수 없습니다'}), 400
+
+    name = target.name
+    PushupRecord.query.filter_by(user_id=target_id).delete()
+    db.session.delete(target)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': f'{name} 삭제 완료'})
+
+
 # DB 테이블 생성
 with app.app_context():
     db.create_all()

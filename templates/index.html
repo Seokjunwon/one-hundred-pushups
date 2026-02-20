@@ -1693,6 +1693,12 @@
                     <input type="number" id="cashInput" placeholder="원화 금액 입력" min="0" step="1">
                 </div>
             </div>
+            <div class="sheet-section">
+                <div class="sheet-section-title">회원 관리</div>
+                <ul class="admin-stock-list" id="adminUserList">
+                    <li class="asset-empty">로딩 중...</li>
+                </ul>
+            </div>
             <div class="sheet-section" style="padding-top:8px; border-top: 2px solid var(--gray-200);">
                 <button class="btn-save-all" onclick="saveAll()">저장하기</button>
                 <div class="save-all-result" id="saveAllResult"></div>
@@ -2232,12 +2238,57 @@
             }
         }
 
+        // 회원 목록 로드
+        async function loadUsers() {
+            try {
+                const res = await fetch(`/api/admin/users?user_id=${currentUser.id}`);
+                if (!res.ok) return;
+                const users = await res.json();
+                const list = document.getElementById('adminUserList');
+                if (users.length === 0) {
+                    list.innerHTML = '<li class="asset-empty">회원이 없습니다</li>';
+                    return;
+                }
+                list.innerHTML = users.map(u => `
+                    <li class="admin-stock-item">
+                        <div class="admin-stock-info">${u.name}${u.is_admin ? ' (관리자)' : ''}<br><span style="font-size:0.75rem;color:var(--gray-400);">${u.created_at} 가입</span></div>
+                        ${u.is_admin ? '' : `<div class="admin-stock-actions"><button class="btn-delete" onclick="deleteUser(${u.id}, '${u.name}')">삭제</button></div>`}
+                    </li>
+                `).join('');
+            } catch (err) {
+                console.error('회원 목록 로드 실패:', err);
+            }
+        }
+
+        // 회원 삭제
+        async function deleteUser(id, name) {
+            if (!confirm(`${name}님을 정말 삭제하시겠습니까?\n해당 회원의 모든 기록이 삭제됩니다.`)) return;
+            try {
+                const res = await fetch(`/api/admin/user/${id}`, {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: currentUser.id})
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(data.message);
+                    await loadUsers();
+                    await loadRanking();
+                } else {
+                    showToast(data.error || '삭제 실패');
+                }
+            } catch (err) {
+                showToast('서버 연결 실패');
+            }
+        }
+
         // 관리자 모달 열기
         function openAdminSheet() {
             document.getElementById('adminOverlay').classList.add('show');
             document.getElementById('adminSheet').classList.add('show');
             loadAssets();
             loadApiKeyStatus();
+            loadUsers();
         }
 
         // 관리자 모달 닫기
