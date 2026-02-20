@@ -484,14 +484,32 @@
             border-radius: var(--radius-lg);
             padding: 24px;
             margin-bottom: 16px;
-            box-shadow: var(--shadow-card);
-            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-card), 0 0 0 1px rgba(91, 33, 182, 0.06);
+            border: none;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .today-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(91, 33, 182, 0.03) 0%, transparent 50%);
+            pointer-events: none;
             transition: all 0.25s ease;
         }
 
         .today-action.completed {
-            border: 1.5px solid var(--success);
+            box-shadow: var(--shadow-card), 0 0 0 1.5px var(--success);
             background: var(--success-light);
+        }
+
+        .today-action.completed::before {
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
         }
 
         .today-action.not-workday {
@@ -572,16 +590,29 @@
             border-radius: var(--radius-lg);
             padding: 24px;
             margin-bottom: 16px;
-            box-shadow: var(--shadow-card);
-            border: 1px solid var(--border-light);
-            border-top: 3px solid var(--primary);
+            box-shadow: var(--shadow-card), 0 0 0 1px rgba(91, 33, 182, 0.06);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calendar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(91, 33, 182, 0.04) 0%, transparent 40%);
+            pointer-events: none;
         }
 
         .calendar-title {
             font-size: 1.05rem;
             font-weight: 700;
-            color: var(--primary-dark);
+            color: var(--text-primary);
             margin-bottom: 20px;
+            position: relative;
         }
 
         .calendar-header {
@@ -722,9 +753,21 @@
             background: var(--card);
             border-radius: var(--radius-lg);
             padding: 24px;
-            box-shadow: var(--shadow-card);
-            border: 1px solid var(--border-light);
-            border-top: 3px solid var(--primary);
+            box-shadow: var(--shadow-card), 0 0 0 1px rgba(91, 33, 182, 0.06);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ranking-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(91, 33, 182, 0.04) 0%, transparent 40%);
+            pointer-events: none;
         }
 
         .ranking-header {
@@ -732,12 +775,13 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 20px;
+            position: relative;
         }
 
         .ranking-header h3 {
             font-size: 1.05rem;
             font-weight: 700;
-            color: var(--primary-dark);
+            color: var(--text-primary);
         }
 
         .ranking-list {
@@ -1242,9 +1286,21 @@
             border-radius: var(--radius-lg);
             padding: 24px;
             margin-top: 16px;
-            box-shadow: var(--shadow-card);
-            border: 1px solid var(--border-light);
-            border-top: 3px solid var(--primary);
+            box-shadow: var(--shadow-card), 0 0 0 1px rgba(91, 33, 182, 0.06);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .asset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(91, 33, 182, 0.04) 0%, transparent 40%);
+            pointer-events: none;
         }
 
         .asset-header {
@@ -1273,19 +1329,33 @@
         }
 
         .asset-total {
-            background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%);
+            background: linear-gradient(135deg, #2E1065 0%, #4C1D95 40%, #6D28D9 100%);
             border-radius: var(--radius);
             padding: 22px 20px;
             color: white;
             margin-bottom: 20px;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 4px 20px rgba(46, 16, 101, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .asset-total::after {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -15%;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.2) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .asset-total-label {
             font-size: 0.825rem;
-            opacity: 0.85;
+            opacity: 0.75;
             margin-bottom: 4px;
             font-weight: 500;
+            position: relative;
         }
 
         .asset-total-amount {
@@ -1293,6 +1363,7 @@
             font-size: 1.85rem;
             font-weight: 800;
             letter-spacing: -0.03em;
+            position: relative;
         }
 
         .asset-section-title {
