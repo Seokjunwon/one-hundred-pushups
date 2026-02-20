@@ -76,3 +76,36 @@ class SiteConfig(db.Model):
     value = db.Column(db.Text, nullable=False)
     updated_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Event(db.Model):
+    """D-Day 이벤트 모델"""
+    __tablename__ = 'events'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    target_date = db.Column(db.Date, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    participants = db.relationship('EventParticipant', backref='event', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Event {self.title}>'
+
+
+class EventParticipant(db.Model):
+    """이벤트 참석자 모델"""
+    __tablename__ = 'event_participants'
+
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', lazy=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('event_id', 'user_id', name='unique_event_user'),
+    )

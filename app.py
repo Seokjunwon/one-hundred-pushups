@@ -3,7 +3,7 @@ import time
 from datetime import datetime, date, timedelta
 from calendar import monthrange
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from models import db, User, PushupRecord, StockHolding, CashAsset, SiteConfig
+from models import db, User, PushupRecord, StockHolding, CashAsset, SiteConfig, Event, EventParticipant
 from whitenoise import WhiteNoise
 import holidays
 import requests as http_requests
@@ -724,6 +724,135 @@ def delete_user(target_id):
     db.session.commit()
 
     return jsonify({'success': True, 'message': f'{name} 삭제 완료'})
+
+
+@app.route('/api/event')
+def get_active_event():
+    """현재 활성 이벤트 조회"""
+    user_id = request.args.get('user_id', type=int)
+    event = Event.query.filter_by(is_active=True).order_by(Event.created_at.desc()).first()
+    if not event:
+        return jsonify({'event': None})
+
+    today = date.today()
+    delta = (event.target_date - today).days
+    d_day_str = f'D-{delta}' if delta > 0 else ('D-Day' if delta == 0 else f'D+{abs(delta)}')
+
+    participants = []
+    my_joined = False
+    for p in event.participants:
+        u = db.session.get(User, p.user_id)
+        if u:
+            participants.append({'id': u.id, 'name': u.name, 'joined_at': p.joined_at.strftime('%m/%d')})
+            if user_id and u.id == user_id:
+                my_joined = True
+
+    return jsonify({
+        'event': {
+            'id': event.id,
+            'title': event.title,
+            'target_date': event.target_date.isoformat(),
+            'd_day': d_day_str,
+            'd_day_num': delta,
+            'participant_count': len(participants),
+            'participants': participants,
+            'my_joined': my_joined,
+        }
+    })
+
+
+@app.route('/api/event/join', methods=['POST'])
+def join_event():
+    """이벤트 참석"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    event_id = data.get('event_id')
+
+    if not user_id or not event_id:
+        return jsonify({'error': '필수 정보가 누락되었습니다'}), 400
+
+    event = db.session.get(Event, event_id)
+    if not event or not event.is_active:
+        return jsonify({'error': '이벤트를 찾을 수 없습니다'}), 404
+
+    existing = EventParticipant.query.filter_by(event_id=event_id, user_id=user_id).first()
+    if existing:
+        return jsonify({'error': '이미 참석 등록되어 있습니다'}), 400
+
+    participant = EventParticipant(event_id=event_id, user_id=user_id)
+    db.session.add(participant)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@app.route('/api/event/leave', methods=['POST'])
+def leave_event():
+    """이벤트 참석 취소"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    event_id = data.get('event_id')
+
+    if not user_id or not event_id:
+        return jsonify({'error': '필수 정보가 누락되었습니다'}), 400
+
+    participant = EventParticipant.query.filter_by(event_id=event_id, user_id=user_id).first()
+    if not participant:
+        return jsonify({'error': '참석 기록이 없습니다'}), 404
+
+    db.session.delete(participant)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@app.route('/api/admin/event', methods=['POST'])
+def save_event():
+    """이벤트 생성/수정 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id) if user_id else None
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    title = data.get('title', '').strip()
+    target_date_str = data.get('target_date', '').strip()
+
+    if not title or not target_date_str:
+        return jsonify({'error': '제목과 날짜를 입력해주세요'}), 400
+
+    try:
+        target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': '날짜 형식이 올바르지 않습니다'}), 400
+
+    # 기존 활성 이벤트가 있으면 비활성화
+    Event.query.filter_by(is_active=True).update({'is_active': False})
+
+    event = Event(title=title, target_date=target_date, created_by=user_id)
+    db.session.add(event)
+    db.session.commit()
+
+    return jsonify({'success': True, 'id': event.id})
+
+
+@app.route('/api/admin/event/<int:event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    """이벤트 삭제 (관리자 전용)"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    user = db.session.get(User, user_id) if user_id else None
+    if not user or not is_admin(user.name):
+        return jsonify({'error': '권한이 없습니다'}), 403
+
+    event = db.session.get(Event, event_id)
+    if not event:
+        return jsonify({'error': '이벤트를 찾을 수 없습니다'}), 404
+
+    db.session.delete(event)
+    db.session.commit()
+
+    return jsonify({'success': True})
 
 
 # DB 테이블 생성 + 마이그레이션

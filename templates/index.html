@@ -885,6 +885,353 @@
             transform: rotate(180deg);
         }
 
+        /* ===== EVENT NOTICE BAR ===== */
+        .notice-bar {
+            background: linear-gradient(135deg, #2E1065 0%, #5B21B6 100%);
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 12px rgba(46, 16, 101, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notice-bar::after {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .notice-bar:active {
+            transform: scale(0.98);
+        }
+
+        .notice-bar-badge {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #E9D5FF;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .notice-bar-text {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.9);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notice-bar-arrow {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .notice-bar.hidden {
+            display: none;
+        }
+
+        /* ===== EVENT DETAIL SCREEN ===== */
+        .event-screen {
+            display: none;
+            padding-bottom: 40px;
+        }
+
+        .event-screen.active {
+            display: block;
+        }
+
+        .event-back-bar {
+            display: flex;
+            align-items: center;
+            padding: 20px 0 16px;
+        }
+
+        .event-back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .event-back-btn:active {
+            background: var(--bg);
+            transform: scale(0.97);
+        }
+
+        .event-detail-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-light);
+            margin-bottom: 16px;
+        }
+
+        .event-detail-hero {
+            background: linear-gradient(135deg, #2E1065 0%, #5B21B6 50%, #7C3AED 100%);
+            padding: 32px 24px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-detail-hero::after {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .event-dday-large {
+            font-family: 'Inter', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .event-title-large {
+            font-size: 1.15rem;
+            font-weight: 700;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .event-date-info {
+            font-size: 0.825rem;
+            opacity: 0.6;
+            margin-top: 8px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .event-action-area {
+            padding: 24px;
+        }
+
+        .event-join-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 16px rgba(91, 33, 182, 0.25);
+        }
+
+        .event-join-btn:active {
+            transform: scale(0.97);
+        }
+
+        .event-join-btn.joined {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
+        }
+
+        .event-participants-card {
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-light);
+        }
+
+        .event-participants-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .event-participants-header h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .event-participants-count {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .event-participant-list {
+            list-style: none;
+        }
+
+        .event-participant-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            background: #F8FAFC;
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+
+        .event-participant-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .event-participant-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .event-participant-name {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.925rem;
+            color: var(--text-primary);
+        }
+
+        .event-participant-date {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .event-participant-empty {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .event-participant-item.is-me {
+            background: var(--primary-light);
+            border-left: 3px solid var(--primary);
+        }
+
+        /* ===== ADMIN EVENT FORM ===== */
+        .admin-event-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .admin-event-form input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: #F8FAFC;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .admin-event-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.1);
+        }
+
+        .admin-event-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .admin-event-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 700;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .admin-event-actions button:active {
+            transform: scale(0.96);
+        }
+
+        .admin-event-current {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px;
+            background: var(--primary-light);
+            border-radius: var(--radius);
+            margin-bottom: 14px;
+            border: 1px solid rgba(91, 33, 182, 0.15);
+        }
+
+        .admin-event-current-info {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+        }
+
+        .admin-event-current-info span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
         /* ===== ASSETS ===== */
         .asset-card {
             background: var(--card);
@@ -1708,6 +2055,13 @@
                 </div>
             </div>
 
+            <!-- 공지/이벤트 바 -->
+            <div class="notice-bar hidden" id="noticeBar" onclick="showEventScreen()">
+                <div class="notice-bar-badge" id="noticeDday">D-0</div>
+                <div class="notice-bar-text" id="noticeText">이벤트 없음</div>
+                <div class="notice-bar-arrow">&#8250;</div>
+            </div>
+
             <div class="month-select-wrapper">
                 <select class="month-select" id="monthSelect" onchange="loadCalendar()">
                 </select>
@@ -1828,6 +2182,32 @@
                 </div>
             </div>
         </div>
+
+        <!-- 이벤트 상세 화면 -->
+        <div class="event-screen" id="eventScreen">
+            <div class="event-back-bar">
+                <button class="event-back-btn" onclick="hideEventScreen()">&#8249; 홈으로 가기</button>
+            </div>
+            <div class="event-detail-card fade-in">
+                <div class="event-detail-hero">
+                    <div class="event-dday-large" id="eventDdayLarge">D-0</div>
+                    <div class="event-title-large" id="eventTitleLarge">이벤트</div>
+                    <div class="event-date-info" id="eventDateInfo"></div>
+                </div>
+                <div class="event-action-area">
+                    <button class="event-join-btn" id="eventJoinBtn" onclick="toggleEventJoin()">참석하기</button>
+                </div>
+            </div>
+            <div class="event-participants-card fade-in">
+                <div class="event-participants-header">
+                    <h3>참석 명단</h3>
+                    <span class="event-participants-count" id="eventParticipantCount">0명</span>
+                </div>
+                <ul class="event-participant-list" id="eventParticipantList">
+                    <li class="event-participant-empty">아직 참석자가 없습니다</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -1893,6 +2273,17 @@
                 <div class="sheet-section-title">현금 자산 (KRW)</div>
                 <div class="cash-form">
                     <input type="number" id="cashInput" placeholder="원화 금액 입력" min="0" step="1">
+                </div>
+            </div>
+            <div class="sheet-section">
+                <div class="sheet-section-title">D-Day 이벤트</div>
+                <div id="adminEventCurrent"></div>
+                <div class="admin-event-form">
+                    <input type="text" id="eventTitleInput" placeholder="이벤트 제목 (예: 바디프로필 촬영)">
+                    <input type="date" id="eventDateInput">
+                </div>
+                <div class="admin-event-actions">
+                    <button style="background:var(--primary-gradient);color:white;" onclick="saveEvent()">등록하기</button>
                 </div>
             </div>
             <div class="sheet-section">
@@ -2004,7 +2395,7 @@
             document.getElementById('adminBtn').style.display = currentUser.is_admin ? 'flex' : 'none';
 
             await loadMonthOptions();
-            await Promise.all([loadCalendar(), loadRanking(), loadAssets()]);
+            await Promise.all([loadCalendar(), loadRanking(), loadAssets(), loadEvent()]);
 
             // 1분마다 자산 갱신
             if (assetRefreshTimer) clearInterval(assetRefreshTimer);
@@ -2491,6 +2882,7 @@
             loadAssets();
             loadApiKeyStatus();
             loadUsers();
+            loadAdminEventStatus();
         }
 
         // 관리자 모달 닫기
@@ -2667,6 +3059,203 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2500);
+        }
+
+        // ===== D-Day 이벤트 기능 =====
+        let currentEvent = null;
+
+        // 이벤트 로드 (공지바 업데이트)
+        async function loadEvent() {
+            try {
+                const res = await fetch(`/api/event?user_id=${currentUser.id}`);
+                const data = await res.json();
+                const bar = document.getElementById('noticeBar');
+
+                if (!data.event) {
+                    bar.classList.add('hidden');
+                    currentEvent = null;
+                    return;
+                }
+
+                currentEvent = data.event;
+                bar.classList.remove('hidden');
+                document.getElementById('noticeDday').textContent = currentEvent.d_day;
+                document.getElementById('noticeText').textContent = currentEvent.title;
+            } catch (err) {
+                console.error('이벤트 로드 실패:', err);
+            }
+        }
+
+        // 이벤트 상세 화면 보기
+        function showEventScreen() {
+            if (!currentEvent) return;
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('eventScreen').classList.add('active');
+            renderEventDetail();
+        }
+
+        // 홈으로 돌아가기
+        function hideEventScreen() {
+            document.getElementById('eventScreen').classList.remove('active');
+            document.getElementById('mainScreen').classList.add('active');
+        }
+
+        // 이벤트 상세 렌더링
+        async function renderEventDetail() {
+            // 최신 데이터 다시 로드
+            try {
+                const res = await fetch(`/api/event?user_id=${currentUser.id}`);
+                const data = await res.json();
+                if (!data.event) {
+                    hideEventScreen();
+                    return;
+                }
+                currentEvent = data.event;
+            } catch (err) {
+                console.error('이벤트 로드 실패:', err);
+                return;
+            }
+
+            const ev = currentEvent;
+            document.getElementById('eventDdayLarge').textContent = ev.d_day;
+            document.getElementById('eventTitleLarge').textContent = ev.title;
+
+            const targetDate = new Date(ev.target_date + 'T00:00:00');
+            const dateStr = targetDate.toLocaleDateString('ko-KR', {year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'});
+            document.getElementById('eventDateInfo').textContent = dateStr;
+
+            // 참석/취소 버튼
+            const joinBtn = document.getElementById('eventJoinBtn');
+            if (ev.my_joined) {
+                joinBtn.textContent = '취소하기';
+                joinBtn.classList.add('joined');
+            } else {
+                joinBtn.textContent = '참석하기';
+                joinBtn.classList.remove('joined');
+            }
+
+            // 참석자 목록
+            document.getElementById('eventParticipantCount').textContent = ev.participant_count + '명';
+            const list = document.getElementById('eventParticipantList');
+
+            if (ev.participants.length === 0) {
+                list.innerHTML = '<li class="event-participant-empty">아직 참석자가 없습니다</li>';
+            } else {
+                list.innerHTML = ev.participants.map(p => {
+                    const isMe = currentUser && p.id === currentUser.id;
+                    return `
+                        <li class="event-participant-item ${isMe ? 'is-me' : ''}">
+                            <div class="event-participant-avatar">${p.name.charAt(0)}</div>
+                            <div class="event-participant-name">${p.name}${isMe ? ' (나)' : ''}</div>
+                            <div class="event-participant-date">${p.joined_at}</div>
+                        </li>
+                    `;
+                }).join('');
+            }
+        }
+
+        // 참석/취소 토글
+        async function toggleEventJoin() {
+            if (!currentEvent) return;
+
+            const isJoined = currentEvent.my_joined;
+            const url = isJoined ? '/api/event/leave' : '/api/event/join';
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: currentUser.id, event_id: currentEvent.id})
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    showToast(err.error || '처리 실패');
+                    return;
+                }
+
+                showToast(isJoined ? '참석이 취소되었습니다' : '참석 등록 완료!');
+                await renderEventDetail();
+                await loadEvent();
+            } catch (err) {
+                showToast('서버 연결 실패');
+            }
+        }
+
+        // 관리자: 이벤트 저장
+        async function saveEvent() {
+            const title = document.getElementById('eventTitleInput').value.trim();
+            const targetDate = document.getElementById('eventDateInput').value;
+
+            if (!title || !targetDate) {
+                showToast('제목과 날짜를 입력해주세요');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/event', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: currentUser.id, title, target_date: targetDate})
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast('이벤트가 등록되었습니다');
+                    document.getElementById('eventTitleInput').value = '';
+                    document.getElementById('eventDateInput').value = '';
+                    await loadEvent();
+                    loadAdminEventStatus();
+                } else {
+                    showToast(data.error || '등록 실패');
+                }
+            } catch (err) {
+                showToast('서버 연결 실패');
+            }
+        }
+
+        // 관리자: 이벤트 삭제
+        async function deleteEvent(eventId) {
+            if (!confirm('이벤트를 삭제하시겠습니까?\n참석자 명단도 함께 삭제됩니다.')) return;
+
+            try {
+                const res = await fetch(`/api/admin/event/${eventId}`, {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: currentUser.id})
+                });
+                if (res.ok) {
+                    showToast('이벤트 삭제 완료');
+                    await loadEvent();
+                    loadAdminEventStatus();
+                }
+            } catch (err) {
+                showToast('서버 연결 실패');
+            }
+        }
+
+        // 관리자: 현재 이벤트 상태 표시
+        async function loadAdminEventStatus() {
+            const container = document.getElementById('adminEventCurrent');
+            try {
+                const res = await fetch(`/api/event?user_id=${currentUser.id}`);
+                const data = await res.json();
+                if (data.event) {
+                    const ev = data.event;
+                    container.innerHTML = `
+                        <div class="admin-event-current">
+                            <div class="admin-event-current-info">
+                                ${ev.d_day} ${ev.title}
+                                <span>${ev.target_date} | 참석 ${ev.participant_count}명</span>
+                            </div>
+                            <button class="btn-delete" style="padding:7px 14px;border:none;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;background:var(--danger-light);color:var(--danger);" onclick="deleteEvent(${ev.id})">삭제</button>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<p style="font-size:0.825rem;color:var(--text-muted);margin-bottom:10px;">등록된 이벤트 없음</p>';
+                }
+            } catch (err) {
+                container.innerHTML = '';
+            }
         }
 
         // PWA 서비스 워커 등록
