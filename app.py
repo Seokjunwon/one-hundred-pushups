@@ -726,9 +726,17 @@ def delete_user(target_id):
     return jsonify({'success': True, 'message': f'{name} 삭제 완료'})
 
 
-# DB 테이블 생성
+# DB 테이블 생성 + 마이그레이션
 with app.app_context():
     db.create_all()
+    # avg_price 컬럼 추가 (기존 DB에 컬럼이 없는 경우)
+    try:
+        db.session.execute(db.text(
+            "ALTER TABLE stock_holdings ADD COLUMN avg_price FLOAT NOT NULL DEFAULT 0"
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 
 if __name__ == '__main__':
