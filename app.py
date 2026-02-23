@@ -1,6 +1,6 @@
 import os
 import time
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from calendar import monthrange
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from models import db, User, PushupRecord, StockHolding, CashAsset, SiteConfig, Event, EventParticipant
@@ -32,6 +32,15 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 # DB 초기화
 db.init_app(app)
+
+# 한국 시간대 (UTC+9)
+KST = timezone(timedelta(hours=9))
+
+
+def today_kst():
+    """한국 시간 기준 오늘 날짜"""
+    return datetime.now(KST).date()
+
 
 # 한국 공휴일
 kr_holidays = holidays.KR()
@@ -147,7 +156,7 @@ def get_month_workdays(year, month):
     for day in range(1, last_day + 1):
         current_date = date(year, month, day)
         # 미래 날짜는 제외
-        if current_date > date.today():
+        if current_date > today_kst():
             break
         if is_workday(current_date):
             workdays.append(current_date)
@@ -280,7 +289,7 @@ def toggle_completion():
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
     # 미래 날짜는 체크 불가
-    if target_date > date.today():
+    if target_date > today_kst():
         return jsonify({'error': '미래 날짜는 체크할 수 없습니다'}), 400
 
     # 기존 기록 확인
@@ -305,8 +314,8 @@ def toggle_completion():
 @app.route('/api/ranking')
 def get_ranking():
     """벌금 랭킹 (명예의 전당)"""
-    year = request.args.get('year', date.today().year, type=int)
-    month = request.args.get('month', date.today().month, type=int)
+    year = request.args.get('year', today_kst().year, type=int)
+    month = request.args.get('month', today_kst().month, type=int)
 
     # 해당 월 범위
     start_date = date(year, month, 1)
@@ -368,7 +377,7 @@ def get_ranking():
 @app.route('/api/available-months')
 def get_available_months():
     """조회 가능한 월 목록"""
-    today = date.today()
+    today = today_kst()
     months = []
 
     # 최근 12개월
@@ -734,7 +743,7 @@ def get_active_event():
     if not event:
         return jsonify({'event': None})
 
-    today = date.today()
+    today = today_kst()
     delta = (event.target_date - today).days
     d_day_str = f'D-{delta}' if delta > 0 else ('D-Day' if delta == 0 else f'D+{abs(delta)}')
 
