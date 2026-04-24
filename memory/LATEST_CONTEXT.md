@@ -1,6 +1,6 @@
 # 100챌린지 - 최신 컨텍스트
 
-> 마지막 업데이트: 2026-02-20
+> 마지막 업데이트: 2026-04-24
 
 ---
 
@@ -24,26 +24,30 @@
 | `templates/index.html` | 단일 파일 프론트엔드 (HTML + CSS + JS, ~3100줄) |
 | `requirements.txt` | Python 의존성 |
 | `render.yaml` | Render 배포 설정 |
-| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v14**) |
-| `static/manifest.json` | PWA 매니페스트 (theme_color: #4C1D95) |
-| `static/icons/` | PWA 아이콘 (72~512px, "100" 텍스트 + 딥퍼플 그라데이션) |
+| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v15**) |
+| `static/manifest.json` | PWA 매니페스트 (theme_color: #CA8A04) |
+| `static/icons/` | PWA 아이콘 (72~512px, "100" 텍스트 + 딥퍼플 그라데이션 - 미교체) |
 | `memory/` | 세션 메모리 시스템 |
 
 ---
 
 ## 디자인 테마
 
-- **컨셉컬러**: 딥퍼플 (마켓컬리풍)
-- `--primary`: #5B21B6
-- `--primary-dark`: #4C1D95
-- `--primary-light`: #EDE9FE
-- `--primary-gradient`: linear-gradient(135deg, #4C1D95 → #7C3AED)
-- **헤더**: 딥퍼플 그라데이션 배경 + 흰색 텍스트
-- **카드**: 흰색 바탕 + ::before 퍼플 그라데이션 오버레이 + 링 쉐도우 (캘린더, 명예의전당, 보유자산)
-- **벌금 카드**: 다크 퍼플 그라데이션 (#2E1065 → #6D28D9)
-- **자산 총액**: 딥퍼플 그라데이션 (#2E1065 → #4C1D95 → #6D28D9) + radial 글로우
+- **컨셉컬러**: 화이트톤 + 진한 머스터드 옐로우 (모던 미니멀)
+- `--primary`: #CA8A04 (mustard)
+- `--primary-dark`: #854D0E
+- `--primary-light`: #FEF9C3
+- `--primary-pale`: #FFFBEB
+- `--primary-gradient`: linear-gradient(135deg, #854D0E → #CA8A04)
+- `--dark-hero`: linear-gradient(135deg, #0F172A → #1E293B → #334155) (차콜; 벌금카드/이벤트히어로용)
+- **폰트**: Pretendard Variable (CDN, trendy 한국어 타이포)
+- **헤더**: 화이트 배경 + 하단 보더 + 옐로우 그라데이션 아이콘
+- **카드**: 흰색 + 미세 보더 + 연한 옐로우 오버레이 (::before)
+- **벌금 카드 / 이벤트 히어로 / 자산 총액 카드 / 공지바**: `var(--dark-hero)` 차콜 그라데이션
+- **자산 카드**: 화이트 요약(평가금액 + 수익률 +X%(+원) + 총투자금/현금보유 메타)
+- **한국식 등락 컬러**: 상승=빨강(#DC2626), 하락=파랑(#2563EB)
 - **명예의전당 1위**: 골드 배경 + 별(✦) 트윙클 10개 + 폭죽 burst 3개 + "멋지다" 자동 표시
-- **PWA 아이콘**: "100" 텍스트 로고 + 딥퍼플 그라데이션 (Pillow 생성)
+- **PWA 아이콘**: 현재도 딥퍼플 그라데이션(미교체). theme_color만 #CA8A04로 변경.
 
 ---
 
@@ -51,7 +55,8 @@
 
 - **User**: id, name, created_at
 - **PushupRecord**: id, user_id(FK), date, completed, created_at (unique: user_id+date)
-- **StockHolding**: id, symbol, shares, avg_price, added_by(FK), created_at, updated_at
+- **StockHolding**: id, symbol, shares, avg_price, current_price, added_by(FK), created_at, updated_at
+  - `current_price`: KR 주식 현재가 폴백용 (Yahoo API 실패 시). US는 미사용(항상 0).
 - **CashAsset**: id, amount(KRW), updated_by(FK), updated_at (단일 행)
 - **SiteConfig**: id, key(unique), value, updated_by(FK), updated_at (key-value 설정 저장)
 - **Event**: id, title, target_date, is_active, created_by(FK), created_at
@@ -87,9 +92,15 @@
 - 회원 삭제 → `DELETE /api/admin/user/<id>`
 
 ### 외부 API
-- **Finnhub**: 미국 주식 실시간 시세 (Quote endpoint, 60초 인메모리 캐시)
+- **Finnhub**: 미국 주식 실시간 시세 (Quote endpoint, 60초 인메모리 캐시). 영문 심볼.
+- **Yahoo Finance** (`query1.finance.yahoo.com/v8/finance/chart`): 한국 주식 실시간 시세. 종목코드 6자리 + `.KS`(KOSPI) → `.KQ`(KOSDAQ) 순 시도. No API key. User-Agent 헤더 필요.
 - **open.er-api.com**: USD/KRW 환율 (5분 인메모리 캐시, 실패 시 1350 폴백)
 - API 키는 DB(SiteConfig)에 저장, 없으면 환경변수 폴백
+
+### 종목 시장 구분
+- `detect_market(symbol)`: 6자리 숫자 → `'KR'`, 영문 → `'US'`
+- 프론트 관리자 폼: 나스닥/코스피/코스닥 select로 입력 힌트 동적 변경
+- `/api/assets` 응답에 `market`, `currency`, `cost_krw`, `gain_krw`, `gain_percent` 추가; 전체는 `total_cost_krw`, `total_gain_krw`, `total_gain_percent` 추가
 
 ---
 
@@ -114,6 +125,7 @@
 ## 최근 커밋 히스토리
 
 ```
+ab1e2f0 Fix: 타임존 버그 수정 - date.today()를 KST 기준으로 변경
 e1b8a07 UI: 명예의전당 1위 이름 뒤에 '멋지다' 자동 표시
 9b5fe18 UI: 1위 효과 개선 - 별 반짝임 + 폭죽 이펙트로 교체
 a910e0f UI: 명예의전당 1등 반짝이 효과 추가
@@ -127,6 +139,7 @@ ca4f8dc Feature: D-Day 이벤트 기능 추가 (공지바 + 참석 관리)
 
 ## 주의사항
 
+- **타임존**: 서버(Render)는 UTC, 사용자는 KST → `today_kst()` 헬퍼 사용 필수 (`date.today()` 사용 금지)
 - `models.py`의 `avg_price` 컬럼 추가는 **취소됨** (절대 추가하지 말 것)
 - 서비스 워커 캐시 변경 시 `CACHE_NAME`과 `STATIC_CACHE` **둘 다** 업데이트 필요 (현재 v14)
 - `db.create_all()`은 새 테이블만 생성, 기존 테이블 컬럼 변경 불가

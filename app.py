@@ -52,6 +52,22 @@ ADMIN_USERS = ["원석준", "김병석"]
 FINNHUB_API_KEY_ENV = os.environ.get('FINNHUB_API_KEY', '')
 
 
+def detect_market(symbol):
+    """종목 심볼로 시장 구분. 6자리 숫자 = KOSPI/KOSDAQ(KR), 그 외 = NASDAQ(US)."""
+    s = (symbol or '').strip()
+    if s.isdigit() and len(s) == 6:
+        return 'KR'
+    return 'US'
+
+
+def normalize_symbol(symbol):
+    """심볼 정규화: 한국 종목(숫자 6자리)은 그대로, 그 외는 대문자."""
+    s = (symbol or '').strip()
+    if s.isdigit() and len(s) == 6:
+        return s
+    return s.upper()
+
+
 def get_finnhub_api_key():
     """DB에서 API 키 조회, 없으면 환경변수 폴백"""
     try:
@@ -67,13 +83,53 @@ _price_cache = {}
 PRICE_CACHE_TTL = 60
 
 
+def get_kr_stock_price(symbol):
+    """한국 주식(KOSPI/KOSDAQ) 실시간 시세 조회.
+    Yahoo Finance의 무료 chart 엔드포인트 사용. 종목코드 뒤에 .KS(KOSPI) → .KQ(KOSDAQ) 순으로 시도.
+    """
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; 100-challenge/1.0)'}
+    for suffix in ('.KS', '.KQ'):
+        try:
+            resp = http_requests.get(
+                f'https://query1.finance.yahoo.com/v8/finance/chart/{symbol}{suffix}',
+                params={'interval': '1d', 'range': '2d'},
+                headers=headers,
+                timeout=5,
+            )
+            if resp.status_code != 200:
+                continue
+            data = resp.json()
+            results = (data or {}).get('chart', {}).get('result') or []
+            if not results:
+                continue
+            meta = results[0].get('meta', {}) or {}
+            price = meta.get('regularMarketPrice')
+            prev = meta.get('chartPreviousClose') or meta.get('previousClose')
+            if price is None or price == 0:
+                continue
+            price = float(price)
+            prev = float(prev) if prev else price
+            change = price - prev
+            dp = (change / prev * 100) if prev else 0
+            return {'c': price, 'dp': dp, 'd': change, 'pc': prev}
+        except Exception:
+            continue
+    return None
+
+
 def get_stock_price(symbol):
-    """Finnhub에서 주가 조회 (캐시 포함)"""
+    """주가 조회 (캐시 포함). KR 주식은 Yahoo Finance, US는 Finnhub."""
     now = time.time()
     if symbol in _price_cache:
         cached_time, cached_data = _price_cache[symbol]
         if now - cached_time < PRICE_CACHE_TTL:
             return cached_data
+
+    if detect_market(symbol) == 'KR':
+        result = get_kr_stock_price(symbol)
+        if result:
+            _price_cache[symbol] = (now, result)
+        return result
 
     api_key = get_finnhub_api_key()
     if not api_key:
@@ -404,41 +460,96 @@ def get_assets():
     stocks = StockHolding.query.all()
     stock_list = []
     total_stock_value_usd = 0
+    total_stock_value_krw_direct = 0   # 한국주식 평가액 합계
+    total_stock_cost_usd = 0           # 미국주식 총 투자금 합계(USD)
+    total_stock_cost_krw_direct = 0    # 한국주식 총 투자금 합계(KRW)
 
     usd_krw = get_usd_krw_rate()
     now_str = datetime.utcnow().strftime('%Y.%m.%d %H:%M')
 
     for s in stocks:
-        price_data = get_stock_price(s.symbol)
-        current_price = price_data['c'] if price_data else 0
-        change_percent = price_data['dp'] if price_data else 0
-        value_usd = current_price * s.shares
-        value_krw = round(value_usd * usd_krw)
-        total_stock_value_usd += value_usd
+        market = detect_market(s.symbol)
 
-        cost_usd = s.avg_price * s.shares
-        gain_usd = value_usd - cost_usd
-        gain_krw = round(gain_usd * usd_krw)
-        gain_percent = round((gain_usd / cost_usd * 100), 2) if cost_usd > 0 else 0
+        if market == 'KR':
+            # 한국 주식: Yahoo Finance로 실시간 시세 조회
+            # 실패 시 수동 입력 current_price, 그것도 없으면 avg_price로 폴백
+            avg_price_krw = s.avg_price or 0
+            price_data = get_stock_price(s.symbol)
 
-        stock_list.append({
-            'id': s.id,
-            'symbol': s.symbol,
-            'shares': s.shares,
-            'avg_price': s.avg_price,
-            'current_price': current_price,
-            'change_percent': round(change_percent, 2),
-            'value_usd': round(value_usd, 2),
-            'value_krw': value_krw,
-            'cost_usd': round(cost_usd, 2),
-            'gain_usd': round(gain_usd, 2),
-            'gain_krw': gain_krw,
-            'gain_percent': gain_percent,
-        })
+            if price_data and price_data.get('c'):
+                current_price_krw = float(price_data['c'])
+                day_change_percent = round(float(price_data.get('dp', 0) or 0), 2)
+            elif s.current_price and s.current_price > 0:
+                current_price_krw = s.current_price
+                day_change_percent = 0
+            else:
+                current_price_krw = avg_price_krw
+                day_change_percent = 0
+
+            value_krw = round(current_price_krw * s.shares)
+            cost_krw = round(avg_price_krw * s.shares)
+            gain_krw = value_krw - cost_krw
+            gain_percent = round((gain_krw / cost_krw * 100), 2) if cost_krw > 0 else 0
+
+            total_stock_value_krw_direct += value_krw
+            total_stock_cost_krw_direct += cost_krw
+
+            stock_list.append({
+                'id': s.id,
+                'symbol': s.symbol,
+                'market': market,
+                'currency': 'KRW',
+                'shares': s.shares,
+                'avg_price': avg_price_krw,
+                'current_price': current_price_krw,
+                'change_percent': day_change_percent,
+                'value_usd': 0,
+                'value_krw': value_krw,
+                'cost_usd': 0,
+                'cost_krw': cost_krw,
+                'gain_usd': 0,
+                'gain_krw': gain_krw,
+                'gain_percent': gain_percent,
+            })
+        else:
+            price_data = get_stock_price(s.symbol)
+            current_price = price_data['c'] if price_data else 0
+            change_percent = price_data['dp'] if price_data else 0
+            value_usd = current_price * s.shares
+            value_krw = round(value_usd * usd_krw)
+            total_stock_value_usd += value_usd
+
+            cost_usd = s.avg_price * s.shares
+            total_stock_cost_usd += cost_usd
+            gain_usd = value_usd - cost_usd
+            gain_krw = round(gain_usd * usd_krw)
+            cost_krw = round(cost_usd * usd_krw)
+            gain_percent = round((gain_usd / cost_usd * 100), 2) if cost_usd > 0 else 0
+
+            stock_list.append({
+                'id': s.id,
+                'symbol': s.symbol,
+                'market': market,
+                'currency': 'USD',
+                'shares': s.shares,
+                'avg_price': s.avg_price,
+                'current_price': current_price,
+                'change_percent': round(change_percent, 2),
+                'value_usd': round(value_usd, 2),
+                'value_krw': value_krw,
+                'cost_usd': round(cost_usd, 2),
+                'cost_krw': cost_krw,
+                'gain_usd': round(gain_usd, 2),
+                'gain_krw': gain_krw,
+                'gain_percent': gain_percent,
+            })
 
     cash = CashAsset.query.first()
     cash_krw = cash.amount if cash else 0
-    total_stock_krw = round(total_stock_value_usd * usd_krw)
+    total_stock_krw = round(total_stock_value_usd * usd_krw) + total_stock_value_krw_direct
+    total_cost_krw = round(total_stock_cost_usd * usd_krw) + total_stock_cost_krw_direct
+    total_gain_krw = total_stock_krw - total_cost_krw
+    total_gain_percent = round((total_gain_krw / total_cost_krw * 100), 2) if total_cost_krw > 0 else 0
     total_assets_krw = total_stock_krw + cash_krw
 
     return jsonify({
@@ -446,6 +557,9 @@ def get_assets():
         'cash_krw': cash_krw,
         'total_stock_usd': round(total_stock_value_usd, 2),
         'total_stock_krw': total_stock_krw,
+        'total_cost_krw': total_cost_krw,
+        'total_gain_krw': total_gain_krw,
+        'total_gain_percent': total_gain_percent,
         'total_assets_krw': total_assets_krw,
         'usd_krw': round(usd_krw, 2),
         'updated_at': now_str,
@@ -470,23 +584,40 @@ def add_stock():
     if not user or not is_admin(user.name):
         return jsonify({'error': '권한이 없습니다'}), 403
 
-    symbol = data.get('symbol', '').strip().upper()
+    raw_symbol = data.get('symbol', '').strip()
+    symbol = normalize_symbol(raw_symbol)
     shares = data.get('shares', 0)
     avg_price = data.get('avg_price', 0)
+    current_price = data.get('current_price', 0)
 
     if not symbol or shares <= 0:
         return jsonify({'error': '종목코드와 수량을 올바르게 입력해주세요'}), 400
+
+    # 심볼 형식 검증: 영문(미국) 또는 숫자 6자리(한국)만 허용
+    if not (symbol.isalpha() or (symbol.isdigit() and len(symbol) == 6)):
+        return jsonify({'error': '종목코드 형식이 올바르지 않습니다 (미국: 영문, 한국: 6자리 숫자)'}), 400
 
     try:
         avg_price = float(avg_price)
     except (ValueError, TypeError):
         avg_price = 0
+    try:
+        current_price = float(current_price)
+    except (ValueError, TypeError):
+        current_price = 0
 
-    stock = StockHolding(symbol=symbol, shares=shares, avg_price=avg_price, added_by=user_id)
+    stock = StockHolding(
+        symbol=symbol, shares=shares,
+        avg_price=avg_price, current_price=current_price,
+        added_by=user_id
+    )
     db.session.add(stock)
     db.session.commit()
 
-    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares, 'avg_price': stock.avg_price})
+    return jsonify({
+        'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares,
+        'avg_price': stock.avg_price, 'current_price': stock.current_price
+    })
 
 
 @app.route('/api/admin/stock/<int:stock_id>', methods=['PUT'])
@@ -504,6 +635,7 @@ def update_stock(stock_id):
 
     shares = data.get('shares', 0)
     avg_price = data.get('avg_price')
+    current_price = data.get('current_price')
     if shares <= 0:
         return jsonify({'error': '수량을 올바르게 입력해주세요'}), 400
 
@@ -513,9 +645,17 @@ def update_stock(stock_id):
             stock.avg_price = float(avg_price)
         except (ValueError, TypeError):
             pass
+    if current_price is not None:
+        try:
+            stock.current_price = float(current_price)
+        except (ValueError, TypeError):
+            pass
     db.session.commit()
 
-    return jsonify({'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares, 'avg_price': stock.avg_price})
+    return jsonify({
+        'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares,
+        'avg_price': stock.avg_price, 'current_price': stock.current_price
+    })
 
 
 @app.route('/api/admin/stock/<int:stock_id>', methods=['DELETE'])
@@ -871,6 +1011,14 @@ with app.app_context():
     try:
         db.session.execute(db.text(
             "ALTER TABLE stock_holdings ADD COLUMN avg_price FLOAT NOT NULL DEFAULT 0"
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    # current_price 컬럼 추가 (KR 주식 현재가용)
+    try:
+        db.session.execute(db.text(
+            "ALTER TABLE stock_holdings ADD COLUMN current_price FLOAT NOT NULL DEFAULT 0"
         ))
         db.session.commit()
     except Exception:

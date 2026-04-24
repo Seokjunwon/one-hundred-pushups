@@ -46,6 +46,7 @@ class StockHolding(db.Model):
     symbol = db.Column(db.String(20), nullable=False)
     shares = db.Column(db.Integer, nullable=False)
     avg_price = db.Column(db.Float, nullable=False, default=0)
+    current_price = db.Column(db.Float, nullable=False, default=0)  # KR 주식용 수동 입력 현재가
     added_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
