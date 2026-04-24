@@ -24,30 +24,32 @@
 | `templates/index.html` | 단일 파일 프론트엔드 (HTML + CSS + JS, ~3100줄) |
 | `requirements.txt` | Python 의존성 |
 | `render.yaml` | Render 배포 설정 |
-| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v15**) |
-| `static/manifest.json` | PWA 매니페스트 (theme_color: #CA8A04) |
-| `static/icons/` | PWA 아이콘 (72~512px, "100" 텍스트 + 딥퍼플 그라데이션 - 미교체) |
+| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v16**) |
+| `static/manifest.json` | PWA 매니페스트 (theme_color: #FEE500) |
+| `static/icons/` | PWA 아이콘 (72~512px, 카카오톡 옐로우 그라데이션 + 검정 "100") |
 | `memory/` | 세션 메모리 시스템 |
 
 ---
 
 ## 디자인 테마
 
-- **컨셉컬러**: 화이트톤 + 진한 머스터드 옐로우 (모던 미니멀)
-- `--primary`: #CA8A04 (mustard)
-- `--primary-dark`: #854D0E
-- `--primary-light`: #FEF9C3
-- `--primary-pale`: #FFFBEB
-- `--primary-gradient`: linear-gradient(135deg, #854D0E → #CA8A04)
+- **컨셉컬러**: 화이트톤 + 카카오톡 옐로우 (모던 미니멀)
+- `--primary`: #FEE500 (카카오톡 옐로우)
+- `--primary-dark`: #F6C700 (눌림/강조용)
+- `--primary-light`: #FFF9C4 (연한 배경)
+- `--primary-pale`: #FFFDEB
+- `--primary-ink`: #191600 (옐로우 위 텍스트 — 카카오 스타일 검정)
+- `--primary-gradient`: linear-gradient(135deg, #FEE500 → #FDD835)
 - `--dark-hero`: linear-gradient(135deg, #0F172A → #1E293B → #334155) (차콜; 벌금카드/이벤트히어로용)
 - **폰트**: Pretendard Variable (CDN, trendy 한국어 타이포)
-- **헤더**: 화이트 배경 + 하단 보더 + 옐로우 그라데이션 아이콘
-- **카드**: 흰색 + 미세 보더 + 연한 옐로우 오버레이 (::before)
-- **벌금 카드 / 이벤트 히어로 / 자산 총액 카드 / 공지바**: `var(--dark-hero)` 차콜 그라데이션
-- **자산 카드**: 화이트 요약(평가금액 + 수익률 +X%(+원) + 총투자금/현금보유 메타)
+- **헤더**: 화이트 배경 + 하단 보더 + 옐로우 아이콘(검정 "100")
+- **카드**: 흰색 + 미세 보더
+- **벌금 카드 / 이벤트 히어로 / 자산 총액 카드(구) / 공지바**: `var(--dark-hero)` 차콜 그라데이션
+- **자산 카드(신)**: 화이트 요약(평가금액 + 수익률 +X%(+원) + 총투자금/현금보유 메타)
+- **옐로우 배경 요소**: 버튼/아바타/배너 등 모두 `color: var(--primary-ink)` 검정 텍스트 (가독성)
 - **한국식 등락 컬러**: 상승=빨강(#DC2626), 하락=파랑(#2563EB)
 - **명예의전당 1위**: 골드 배경 + 별(✦) 트윙클 10개 + 폭죽 burst 3개 + "멋지다" 자동 표시
-- **PWA 아이콘**: 현재도 딥퍼플 그라데이션(미교체). theme_color만 #CA8A04로 변경.
+- **PWA 아이콘**: 카카오톡 옐로우 그라데이션 + 검정 "100" (Pillow 재생성 완료)
 
 ---
 
@@ -55,7 +57,8 @@
 
 - **User**: id, name, created_at
 - **PushupRecord**: id, user_id(FK), date, completed, created_at (unique: user_id+date)
-- **StockHolding**: id, symbol, shares, avg_price, current_price, added_by(FK), created_at, updated_at
+- **StockHolding**: id, symbol, name, shares, avg_price, current_price, added_by(FK), created_at, updated_at
+  - `name`: 회사명 캐시 (네이버 API로 한글명, 예: "삼성전자"). 주식 추가 시 자동 조회. 없으면 /api/assets 응답 시 레이지 백필.
   - `current_price`: KR 주식 현재가 폴백용 (Yahoo API 실패 시). US는 미사용(항상 0).
 - **CashAsset**: id, amount(KRW), updated_by(FK), updated_at (단일 행)
 - **SiteConfig**: id, key(unique), value, updated_by(FK), updated_at (key-value 설정 저장)
@@ -92,10 +95,12 @@
 - 회원 삭제 → `DELETE /api/admin/user/<id>`
 
 ### 외부 API
-- **Finnhub**: 미국 주식 실시간 시세 (Quote endpoint, 60초 인메모리 캐시). 영문 심볼.
-- **Yahoo Finance** (`query1.finance.yahoo.com/v8/finance/chart`): 한국 주식 실시간 시세. 종목코드 6자리 + `.KS`(KOSPI) → `.KQ`(KOSDAQ) 순 시도. No API key. User-Agent 헤더 필요.
+- **Finnhub** (`/api/v1/quote`, `/api/v1/stock/profile2`): 미국 주식 실시간 시세 + 회사명. 60초 인메모리 캐시. 영문 심볼.
+- **Yahoo Finance** (`query1.finance.yahoo.com/v8/finance/chart`): 한국 주식 실시간 시세. 종목코드 6자리 + `.KS`(KOSPI) → `.KQ`(KOSDAQ) 순 시도. No API key. User-Agent 헤더 필요. 회사명은 영문(폴백용).
+- **네이버 증권 모바일 API** (`m.stock.naver.com/api/stock/{code}/basic`): 한국 주식 **한글 회사명** 조회 (삼성전자, 에코프로비엠, 카카오 등). No API key. 회사명 전용(시세는 Yahoo 사용).
 - **open.er-api.com**: USD/KRW 환율 (5분 인메모리 캐시, 실패 시 1350 폴백)
 - API 키는 DB(SiteConfig)에 저장, 없으면 환경변수 폴백
+- 회사명 캐시: 6시간 인메모리 (`_name_cache`) + DB 영구 저장
 
 ### 종목 시장 구분
 - `detect_market(symbol)`: 6자리 숫자 → `'KR'`, 영문 → `'US'`
@@ -125,6 +130,8 @@
 ## 최근 커밋 히스토리
 
 ```
+65ae227 Feature: 실제 회사명 표시 + 카카오톡 옐로우 로고
+62c4d58 Feature: 코스피/코스닥 지원 + 화이트/머스터드 UI 리디자인
 ab1e2f0 Fix: 타임존 버그 수정 - date.today()를 KST 기준으로 변경
 e1b8a07 UI: 명예의전당 1위 이름 뒤에 '멋지다' 자동 표시
 9b5fe18 UI: 1위 효과 개선 - 별 반짝임 + 폭죽 이펙트로 교체
@@ -132,7 +139,6 @@ a910e0f UI: 명예의전당 1등 반짝이 효과 추가
 76a2c6e UI: 카드 디자인 리뉴얼 - 퍼플 글로우 + 자산 총액 퍼플 통일
 d74a709 UI: 컨셉컬러 통일 + 참석명단 컬러 오버플로 수정
 ca4f8dc Feature: D-Day 이벤트 기능 추가 (공지바 + 참석 관리)
-6137c88 UI: PWA 아이콘 리디자인 + 딥퍼플 컬러 테마 적용
 ```
 
 ---
