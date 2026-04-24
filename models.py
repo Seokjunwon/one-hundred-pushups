@@ -44,6 +44,7 @@ class StockHolding(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(20), nullable=False)
+    name = db.Column(db.String(100), nullable=True)  # 회사명 캐시 (삼성전자, Bitmine 등)
     shares = db.Column(db.Integer, nullable=False)
     avg_price = db.Column(db.Float, nullable=False, default=0)
     current_price = db.Column(db.Float, nullable=False, default=0)  # KR 주식용 수동 입력 현재가

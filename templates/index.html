@@ -25,12 +25,13 @@
         }
 
         :root {
-            --primary: #CA8A04;
-            --primary-dark: #854D0E;
-            --primary-light: #FEF9C3;
-            --primary-pale: #FFFBEB;
-            --primary-gradient: linear-gradient(135deg, #854D0E 0%, #CA8A04 100%);
-            --accent-gold: #EAB308;
+            --primary: #FEE500;           /* 카카오톡 옐로우 */
+            --primary-dark: #F6C700;      /* 눌림/강조용 진한 옐로우 */
+            --primary-light: #FFF9C4;     /* 매우 연한 옐로우 배경 */
+            --primary-pale: #FFFDEB;      /* 초연한 배경 */
+            --primary-ink: #191600;       /* 옐로우 위 텍스트 컬러 (카카오 스타일) */
+            --primary-gradient: linear-gradient(135deg, #FEE500 0%, #FDD835 100%);
+            --accent-gold: #F6C700;
             --dark-hero: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #334155 100%);
             --success: #10B981;
             --success-light: #ECFDF5;
@@ -102,13 +103,13 @@
         .header-icon {
             width: 44px;
             height: 44px;
-            background: var(--primary-gradient);
+            background: var(--primary);
             border: none;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 14px rgba(202, 138, 4, 0.25);
+            box-shadow: 0 4px 14px rgba(254, 229, 0, 0.35);
             flex-shrink: 0;
         }
 
@@ -116,7 +117,7 @@
             font-family: 'Pretendard Variable', Pretendard, 'Inter', sans-serif;
             font-size: 17px;
             font-weight: 900;
-            color: #FFFFFF;
+            color: var(--primary-ink);
             letter-spacing: -1px;
             line-height: 1;
         }
@@ -215,8 +216,8 @@
         .btn {
             width: 100%;
             padding: 16px 24px;
-            background: var(--primary-gradient);
-            color: white;
+            background: var(--primary);
+            color: var(--primary-ink);
             border: none;
             border-radius: var(--radius);
             font-size: 1.05rem;
@@ -224,12 +225,13 @@
             font-family: 'Pretendard Variable', Pretendard, 'Inter', sans-serif;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 16px rgba(202, 138, 4, 0.3);
+            box-shadow: 0 4px 14px rgba(254, 229, 0, 0.35);
         }
 
         .btn:active {
             transform: scale(0.97);
-            box-shadow: 0 2px 8px rgba(202, 138, 4, 0.2);
+            background: var(--primary-dark);
+            box-shadow: 0 2px 8px rgba(246, 199, 0, 0.25);
         }
 
         /* ===== MAIN SCREEN ===== */
@@ -260,15 +262,15 @@
         .user-avatar {
             width: 44px;
             height: 44px;
-            background: var(--primary-gradient);
+            background: var(--primary);
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 700;
+            color: var(--primary-ink);
+            font-weight: 800;
             font-size: 1.1rem;
-            box-shadow: 0 2px 8px rgba(202, 138, 4, 0.25);
+            box-shadow: 0 2px 8px rgba(254, 229, 0, 0.35);
         }
 
         .user-name {
@@ -570,9 +572,9 @@
             cursor: pointer;
             transition: all 0.2s ease;
             border: none;
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 4px 16px rgba(202, 138, 4, 0.25);
+            background: var(--primary);
+            color: var(--primary-ink);
+            box-shadow: 0 4px 14px rgba(254, 229, 0, 0.35);
         }
 
         .today-btn:active {
@@ -1203,9 +1205,9 @@
             cursor: pointer;
             transition: all 0.2s ease;
             border: none;
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 4px 16px rgba(202, 138, 4, 0.25);
+            background: var(--primary);
+            color: var(--primary-ink);
+            box-shadow: 0 4px 14px rgba(254, 229, 0, 0.35);
         }
 
         .event-join-btn:active {
@@ -1268,13 +1270,13 @@
         .event-participant-avatar {
             width: 36px;
             height: 36px;
-            background: var(--primary-gradient);
+            background: var(--primary);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 700;
+            color: var(--primary-ink);
+            font-weight: 800;
             font-size: 0.9rem;
             margin-right: 12px;
             flex-shrink: 0;
@@ -1560,6 +1562,15 @@
             letter-spacing: -0.02em;
         }
 
+        .stock-code {
+            font-family: 'Pretendard Variable', Pretendard, 'Inter', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-left: 6px;
+            letter-spacing: 0.02em;
+        }
+
         .stock-shares {
             font-family: 'Pretendard Variable', Pretendard, 'Inter', sans-serif;
             font-size: 0.8rem;
@@ -1655,20 +1666,20 @@
         .pwa-banner-icon {
             width: 48px;
             height: 48px;
-            background: var(--primary-gradient);
+            background: var(--primary);
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 4px 14px rgba(202, 138, 4, 0.25);
+            box-shadow: 0 4px 14px rgba(254, 229, 0, 0.35);
         }
 
         .pwa-banner-icon .logo-text {
             font-family: 'Pretendard Variable', Pretendard, 'Inter', sans-serif;
             font-size: 15px;
             font-weight: 900;
-            color: #FFFFFF;
+            color: var(--primary-ink);
             letter-spacing: -1px;
             line-height: 1;
         }
@@ -1700,8 +1711,8 @@
 
         .pwa-install-btn {
             padding: 10px 18px;
-            background: var(--primary-gradient);
-            color: white;
+            background: var(--primary);
+            color: var(--primary-ink);
             border: none;
             border-radius: var(--radius);
             font-size: 0.85rem;
@@ -1976,8 +1987,8 @@
 
         .admin-form button {
             padding: 12px 18px;
-            background: var(--primary-gradient);
-            color: white;
+            background: var(--primary);
+            color: var(--primary-ink);
             border: none;
             border-radius: var(--radius);
             font-size: 0.875rem;
@@ -2095,8 +2106,8 @@
         .btn-save-all {
             width: 100%;
             padding: 16px;
-            background: var(--primary-gradient);
-            color: white;
+            background: var(--primary);
+            color: var(--primary-ink);
             border: none;
             border-radius: var(--radius);
             font-size: 1.025rem;
@@ -2572,7 +2583,7 @@
                     <input type="date" id="eventDateInput">
                 </div>
                 <div class="admin-event-actions">
-                    <button style="background:var(--primary-gradient);color:white;" onclick="saveEvent()">등록하기</button>
+                    <button style="background:var(--primary);color:var(--primary-ink);" onclick="saveEvent()">등록하기</button>
                 </div>
             </div>
             <div class="sheet-section">
@@ -3053,10 +3064,12 @@
                             ? `<span class="market-badge market-kr">KR</span>`
                             : `<span class="market-badge market-us">US</span>`;
 
+                        const displayName = s.name && s.name !== s.symbol ? s.name : s.symbol;
+                        const subCode = s.name && s.name !== s.symbol ? `<span class="stock-code">${s.symbol}</span>` : '';
                         return `
                             <li class="stock-item">
                                 <div class="stock-main">
-                                    <div class="stock-symbol">${marketBadge}${s.symbol}</div>
+                                    <div class="stock-symbol">${marketBadge}${displayName}${subCode}</div>
                                     <div class="stock-shares">${s.shares}주</div>
                                     <div class="stock-avg">내 평균 ${avgDisplay}</div>
                                 </div>
@@ -3238,9 +3251,10 @@
                     ? `<span class="market-badge market-kr">KR</span>`
                     : `<span class="market-badge market-us">US</span>`;
                 const market = isKR ? 'KR' : 'US';
+                const displayName = s.name && s.name !== s.symbol ? `${s.name} <span class="stock-code">${s.symbol}</span>` : s.symbol;
                 return `
                 <li class="admin-stock-item">
-                    <div class="admin-stock-info">${badge}${s.symbol} · ${s.shares}주</div>
+                    <div class="admin-stock-info">${badge}${displayName} · ${s.shares}주</div>
                     <div class="admin-stock-actions">
                         <button class="btn-edit" onclick="editStock(${s.id}, '${s.symbol}', ${s.shares}, ${s.avg_price}, ${s.current_price}, '${market}')">수정</button>
                         <button class="btn-delete" onclick="deleteStock(${s.id}, '${s.symbol}')">삭제</button>

@@ -83,6 +83,110 @@ _price_cache = {}
 PRICE_CACHE_TTL = 60
 
 
+# 회사명 캐시 (6시간 TTL)
+_name_cache = {}
+NAME_CACHE_TTL = 6 * 3600
+
+
+def _fetch_kr_stock_name(symbol):
+    """한국 종목명 조회. 네이버 증권 모바일 API 우선, Yahoo 폴백."""
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; 100-challenge/1.0)'}
+    # 1) 네이버 증권 m.stock API (한글명 제공)
+    try:
+        resp = http_requests.get(
+            f'https://m.stock.naver.com/api/stock/{symbol}/basic',
+            headers=headers,
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            data = resp.json() or {}
+            nm = data.get('stockName') or data.get('name')
+            if nm:
+                return nm.strip()
+    except Exception:
+        pass
+    # 2) 폴백: Yahoo Finance shortName (영문)
+    for suffix in ('.KS', '.KQ'):
+        try:
+            resp = http_requests.get(
+                f'https://query1.finance.yahoo.com/v8/finance/chart/{symbol}{suffix}',
+                params={'interval': '1d', 'range': '2d'},
+                headers=headers,
+                timeout=5,
+            )
+            if resp.status_code != 200:
+                continue
+            data = resp.json()
+            results = (data or {}).get('chart', {}).get('result') or []
+            if not results:
+                continue
+            meta = results[0].get('meta', {}) or {}
+            nm = meta.get('shortName') or meta.get('longName')
+            if nm and ',' not in nm:  # Yahoo가 깨진 값(쉼표 포함) 줄 때 거부
+                return nm.strip()
+        except Exception:
+            continue
+    return None
+
+
+def _fetch_us_stock_name(symbol):
+    """Finnhub profile2로 미국 종목명 조회."""
+    api_key = get_finnhub_api_key()
+    if not api_key:
+        return None
+    try:
+        resp = http_requests.get(
+            'https://finnhub.io/api/v1/stock/profile2',
+            params={'symbol': symbol, 'token': api_key},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            data = resp.json() or {}
+            nm = data.get('name')
+            if nm:
+                return nm.strip()
+    except Exception:
+        pass
+    # Finnhub 없을 때 Yahoo로 폴백
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; 100-challenge/1.0)'}
+    try:
+        resp = http_requests.get(
+            f'https://query1.finance.yahoo.com/v8/finance/chart/{symbol}',
+            params={'interval': '1d', 'range': '2d'},
+            headers=headers,
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            results = (data or {}).get('chart', {}).get('result') or []
+            if results:
+                meta = results[0].get('meta', {}) or {}
+                nm = meta.get('shortName') or meta.get('longName')
+                if nm:
+                    return nm.strip()
+    except Exception:
+        pass
+    return None
+
+
+def get_stock_name(symbol):
+    """종목명 조회. 캐시 포함."""
+    now = time.time()
+    if symbol in _name_cache:
+        cached_time, cached_name = _name_cache[symbol]
+        if now - cached_time < NAME_CACHE_TTL:
+            return cached_name
+
+    if detect_market(symbol) == 'KR':
+        name = _fetch_kr_stock_name(symbol)
+    else:
+        name = _fetch_us_stock_name(symbol)
+
+    if name:
+        _name_cache[symbol] = (now, name)
+    return name
+
+
 def get_kr_stock_price(symbol):
     """한국 주식(KOSPI/KOSDAQ) 실시간 시세 조회.
     Yahoo Finance의 무료 chart 엔드포인트 사용. 종목코드 뒤에 .KS(KOSPI) → .KQ(KOSDAQ) 순으로 시도.
@@ -470,6 +574,18 @@ def get_assets():
     for s in stocks:
         market = detect_market(s.symbol)
 
+        # 회사명 레이지 백필 (기존 데이터용)
+        display_name = s.name
+        if not display_name:
+            fetched = get_stock_name(s.symbol)
+            if fetched:
+                s.name = fetched
+                display_name = fetched
+                try:
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+
         if market == 'KR':
             # 한국 주식: Yahoo Finance로 실시간 시세 조회
             # 실패 시 수동 입력 current_price, 그것도 없으면 avg_price로 폴백
@@ -497,6 +613,7 @@ def get_assets():
             stock_list.append({
                 'id': s.id,
                 'symbol': s.symbol,
+                'name': display_name or s.symbol,
                 'market': market,
                 'currency': 'KRW',
                 'shares': s.shares,
@@ -529,6 +646,7 @@ def get_assets():
             stock_list.append({
                 'id': s.id,
                 'symbol': s.symbol,
+                'name': display_name or s.symbol,
                 'market': market,
                 'currency': 'USD',
                 'shares': s.shares,
@@ -606,8 +724,11 @@ def add_stock():
     except (ValueError, TypeError):
         current_price = 0
 
+    # 회사명 조회해서 같이 저장
+    stock_name = get_stock_name(symbol)
+
     stock = StockHolding(
-        symbol=symbol, shares=shares,
+        symbol=symbol, name=stock_name, shares=shares,
         avg_price=avg_price, current_price=current_price,
         added_by=user_id
     )
@@ -615,7 +736,8 @@ def add_stock():
     db.session.commit()
 
     return jsonify({
-        'id': stock.id, 'symbol': stock.symbol, 'shares': stock.shares,
+        'id': stock.id, 'symbol': stock.symbol, 'name': stock.name,
+        'shares': stock.shares,
         'avg_price': stock.avg_price, 'current_price': stock.current_price
     })
 
@@ -1019,6 +1141,14 @@ with app.app_context():
     try:
         db.session.execute(db.text(
             "ALTER TABLE stock_holdings ADD COLUMN current_price FLOAT NOT NULL DEFAULT 0"
+        ))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    # name 컬럼 추가 (회사명 캐시)
+    try:
+        db.session.execute(db.text(
+            "ALTER TABLE stock_holdings ADD COLUMN name VARCHAR(100)"
         ))
         db.session.commit()
     except Exception:
