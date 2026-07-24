@@ -2975,12 +2975,36 @@
             }
         }
 
-        // 자산 로드
+        // 자산 로드 (캐시 즉시 렌더 → 백그라운드 갱신, 실패 시 마지막 데이터 유지)
         async function loadAssets() {
+            let hasCache = false;
+            try {
+                const cached = localStorage.getItem('assetsCache');
+                if (cached) {
+                    renderAssets(JSON.parse(cached));
+                    hasCache = true;
+                }
+            } catch (e) {}
+
             try {
                 const res = await fetch('/api/assets');
                 const data = await res.json();
 
+                // 실패 응답(오프라인 폴백 등)이면 기존 화면 유지
+                if (!res.ok || data.error || typeof data.total_assets_krw !== 'number') {
+                    throw new Error(data.error || '자산 응답 오류');
+                }
+
+                try { localStorage.setItem('assetsCache', JSON.stringify(data)); } catch (e) {}
+                renderAssets(data);
+            } catch (err) {
+                console.error('자산 로드 실패:', err);
+                // 캐시도 없고 첫 로드도 실패한 경우에만 0원이 보임 — 60초 후 자동 재시도됨
+            }
+        }
+
+        // 자산 렌더링
+        function renderAssets(data) {
                 // 총 평가금액 (KRW) = 주식 + 현금
                 document.getElementById('assetTotalAmount').textContent = data.total_assets_krw.toLocaleString() + '원';
 
@@ -3089,9 +3113,6 @@
                 if (cashInput && !cashInput.matches(':focus')) {
                     cashInput.value = data.cash_krw || '';
                 }
-            } catch (err) {
-                console.error('자산 로드 실패:', err);
-            }
         }
 
         // API 키 상태 로드
