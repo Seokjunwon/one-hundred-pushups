@@ -1,6 +1,6 @@
 # 100챌린지 - 최신 컨텍스트
 
-> 마지막 업데이트: 2026-07-24
+> 마지막 업데이트: 2026-07-25
 
 ---
 
@@ -24,34 +24,34 @@
 | `templates/index.html` | 단일 파일 프론트엔드 (HTML + CSS + JS, ~3100줄) |
 | `requirements.txt` | Python 의존성 |
 | `render.yaml` | Render 배포 설정 |
-| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v17**) |
-| `static/manifest.json` | PWA 매니페스트 (theme_color: #0B0E11) |
-| `static/icons/` | PWA 아이콘 (72~512px, 딥블랙 배경 + 옐로우 라운드 배지 + 검정 "100") |
-| `DESIGN.md` | 디자인 시스템 기준 문서 (Binance DESIGN.md, awesome-design-md 71K★ 출처) |
+| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v21**) |
+| `static/manifest.json` | PWA 매니페스트 (theme_color: #F5F6F8) |
+| `static/icons/` | PWA 아이콘 (72~512px, 풀블리드 옐로우 + 검정 "100") |
+| `DESIGN.md` | (폐기) Binance 다크 시스템 — 참고용만, 현행 디자인 아님 |
 | `memory/` | 세션 메모리 시스템 |
 
 ---
 
-## 디자인 테마 — "Yellow Voltage on Deep Black" (2026-07-24 전면 리뉴얼)
+## 디자인 테마 v4 (확정) — "Toss Minimal" (2026-07-25)
 
-- **기준 문서**: 프로젝트 루트 `DESIGN.md` (Binance 디자인 시스템). 디자인 작업 시 반드시 이 토큰 체계 따를 것.
-- **원칙**: 단일 액센트(옐로우는 CTA·핵심숫자·완료표시만), 플랫 컬러블록(명도 단차로 엘리베이션, 그림자/글로우 금지), 숫자 tabular-nums, 헤어라인 1px 구분
-- `--primary`: #FCD535 (옐로우) / `--primary-active`: #F0B90B / `--primary-ink`: #181A20 (옐로우 위 블랙)
-- `--canvas`: #0B0E11 (페이지 바닥) / `--card`: #1E2329 / `--elev`: #2B3139 (중첩 서페이스 = 헤어라인)
-- `--text`: #EAECEF / `--text-strong`: #FFF / `--muted`: #707A8A
-- `--success`: #0ECB81 / `--danger`: #F6465D / `--blue`: #4A9EFF
-- **한국식 등락**: 상승=빨강(#F6465D), 하락=파랑(#4A9EFF)
-- **폰트**: Pretendard Variable 단독 (Inter 로드 제거됨)
-- **벌금 카드**: 다크 카드 + 옐로우 대형 숫자 (stat-callout 시그니처)
-- **달력**: 완료=옐로우 채움+블랙 숫자, 오늘=옐로우 링, 미완료=레드 틴트, 일=빨강/토=파랑 텍스트
-- **명예의전당 1위**: 옐로우 틴트 그라데이션 + 옐로우 별 트윙클/폭죽 + "멋지다"
-- **토스트**: 라이트 인버전 (밝은 배경 + 블랙 텍스트)
+- **컨셉**: 토스/카카오뱅크류 미니멀. 연회색 캔버스 + 순백 카드 + 여백. 테두리·하드섀도 금지.
+- `--primary`: #FEE500 (옐로우 — CTA 버튼/완료 칩/1위 틴트에만) / `--primary-active`: #F2D900 / `--primary-ink`: #191F28
+- `--canvas`: #F5F6F8 / `--card`: #FFF / `--elev`: #F2F4F6 (입력창·칩) / `--line`: #F2F4F6
+- `--ink`: #191F28 / `--text`: #333D4B / `--muted`: #8B95A1
+- `--danger`: #F04452 / `--blue`: #3182F6 / `--success`: #06BE7A (토스 팔레트)
+- **한국식 등락**: 상승=빨강(#F04452), 하락=파랑(#3182F6)
+- **폰트**: Pretendard Variable 단독. 크기·두께 대비로 위계 (핵심 숫자 800/2.3rem, 라벨 500/0.85rem muted). 외부 디스플레이 폰트 금지.
+- **그림자**: `0 1px 2px 3% + 0 4px 14px 4%` 수준의 옅은 카드 그림자만
+- **달력**: 원형 칩 — 완료=옐로우 원+검정 숫자, 미완료=연레드 원, 오늘=1.5px 잉크 링, 일=빨강/토=파랑 텍스트
+- **명예의전당 1위**: 연노랑 틴트(#FFF8D6) + 옐로우 뱃지 + 골드 반짝임
+- **종목 카드**: 헤더(뱃지+이름+수익률 뱃지) + 2×2 지표 그리드(보유/투자액/평가액/손익)
+- **⚠️ 디자인 이력**: v2 다크 Binance, v3 네오브루탈리즘(블랙보더+Archivo Black) 모두 사용자 거부("촌스럽다", "복고 픽셀"). 루트 `DESIGN.md`(Binance)는 폐기 문서. 전면 리디자인은 반드시 시안 2~3개 먼저 제시 후 진행 (lessons.md L10).
 
 ---
 
 ## 프론트 성능 패턴 (2026-07-24)
 
-- **stale-while-revalidate**: 캘린더/랭킹 localStorage 캐시 (`calCache:{uid}:{y}-{m}`, `rankCache:{y}-{m}`) → 진입 즉시 렌더 후 백그라운드 fetch 갱신
+- **stale-while-revalidate**: 캘린더/랭킹/자산 localStorage 캐시 (`assetsCache` 포함, 실패 응답 가드) (`calCache:{uid}:{y}-{m}`, `rankCache:{y}-{m}`) → 진입 즉시 렌더 후 백그라운드 fetch 갱신
 - **낙관적 업데이트**: `toggleDay()` — 화면 먼저 반영(recalcLocalStats로 벌금 로컬 재계산) → 서버 전송 백그라운드, 실패 시 flip() 롤백
 - **월 목록**: `/api/available-months` 호출 안 함 (클라이언트 생성, 엔드포인트는 잔존)
 - **월 변경**: `onMonthChange()` → loadCalendar + loadRanking 병렬
@@ -115,7 +115,7 @@
 
 ## UI 구성 (index.html 내 순서)
 
-1. **헤더** - 딥블랙 배경 + 옐로우 "100" 배지 + 흰색 제목
+1. **헤더** - 연회색 배경 + 옐로우 "100" 배지 + 잉크 제목 (보더 없음)
 2. **유저바** - 이름, 관리자 톱니바퀴(⚙), 로그아웃
 3. **공지 바** (notice-bar) - D-Day + 이벤트 제목, 클릭 → 이벤트 상세
 4. **월 선택** 드롭다운
@@ -134,6 +134,10 @@
 ## 최근 커밋 히스토리
 
 ```
+5e6efd8 Design: 토스풍 미니멀 리디자인 — 연회색 캔버스 + 순백 카드 + 여백 중심 (확정)
+69f503d Design: 화이트+옐로우+블랙 타이포그래피 리디자인 (→ 거부됨)
+c9986d3 Fix: 자산 카드 0원 표시 문제 — 캐시 즉시 렌더 + 실패 응답 가드
+6ec5732 Feature: 보유 주식 종목별 상세 지표 표시
 5aac981 Feature: 속도 대폭 개선(캐시 즉시렌더+낙관적 업데이트) + 다크 프리미엄 디자인 리뉴얼
 98d0639 Docs: 세션 종료 — 메모리/세션 기록/tasks 업데이트
 65ae227 Feature: 실제 회사명 표시 + 카카오톡 옐로우 로고
@@ -153,7 +157,7 @@ ca4f8dc Feature: D-Day 이벤트 기능 추가 (공지바 + 참석 관리)
 
 - **타임존**: 서버(Render)는 UTC, 사용자는 KST → `today_kst()` 헬퍼 사용 필수 (`date.today()` 사용 금지)
 - ~~avg_price 금지~~ outdated: 이미 존재하며 정상 동작. ALTER는 try/except 패턴 (lessons.md L3)
-- 서비스 워커 캐시 변경 시 `CACHE_NAME`과 `STATIC_CACHE` **둘 다** 업데이트 필요 (현재 v17)
+- 서비스 워커 캐시 변경 시 `CACHE_NAME`과 `STATIC_CACHE` **둘 다** 업데이트 필요 (현재 v21)
 - `db.create_all()`은 새 테이블만 생성, 기존 테이블 컬럼 변경 불가
 - 기존 사용자 영향 없도록 backward-compatible 개발 필수
 - 벌금계좌: (카카오)7942-14-57728 김병석
