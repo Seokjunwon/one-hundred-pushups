@@ -4,8 +4,8 @@
   "description": "매일 100개 푸시업 챌린지 - 함께 운동하고 기록하세요",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0B0E11",
-  "theme_color": "#0B0E11",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFE500",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
@@ -58,6 +58,10 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["health", "fitness", "lifestyle"],
+  "categories": [
+    "health",
+    "fitness",
+    "lifestyle"
+  ],
   "lang": "ko-KR"
 }
