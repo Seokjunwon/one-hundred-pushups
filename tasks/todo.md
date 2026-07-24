@@ -4,6 +4,30 @@
 
 ---
 
+## 이번 세션 (2026-07-24) — 속도 개선 + 다크 프리미엄 디자인 리뉴얼
+
+### 속도 개선
+- [x] 진입 시 로딩 제거: 캘린더/랭킹 localStorage 캐시 → 즉시 렌더 후 백그라운드 갱신 (stale-while-revalidate)
+- [x] 달력 클릭 낙관적 업데이트: 화면 즉시 반영 → 서버 전송은 백그라운드, 실패 시 자동 롤백
+- [x] `/api/available-months` 호출 제거 (월 목록 클라이언트 생성, 백엔드 엔드포인트는 유지)
+- [x] 진입 시 랭킹 중복 fetch 제거 + 월 변경은 onMonthChange가 병렬 처리
+- [x] 백엔드 `/api/calendar`: calculate_penalty의 중복 DB 쿼리 제거 (조회한 records 재사용)
+- [x] Inter 웹폰트 로드 제거 (Pretendard만 사용)
+
+### 디자인 리뉴얼 (GitHub 71K★ awesome-design-md의 Binance DESIGN.md 기반)
+- [x] "Yellow Voltage on Deep Black": 캔버스 #0B0E11 + 카드 #1E2329 + 옐로우 #FCD535 단일 액센트
+- [x] 플랫 컬러블록 (그림자/그라데이션 글로우 제거, 헤어라인 구분), 숫자 tabular-nums
+- [x] 달력: 완료=옐로우+블랙 잉크, 오늘=옐로우 링, 미완료=레드 틴트, 일=빨강/토=파랑
+- [x] 벌금 히어로: 옐로우 대형 숫자 (stat-callout 시그니처)
+- [x] 1위 골드 이펙트 → 옐로우 브랜드 톤으로 통일 (기존 B 항목 색상충돌 해소)
+- [x] PWA 아이콘 재생성(딥블랙+옐로우), manifest/theme-color #0B0E11, 상태바 black-translucent
+- [x] 디자인 기준 파일 `DESIGN.md` 프로젝트 루트에 저장 (이 프로젝트 전용)
+- [x] 서비스워커 캐시 v16 → v17
+- [x] 검증: puppeteer-core+시스템 크롬 실스크린샷 (로그인/메인/달력/랭킹), 낙관적 업데이트 서버응답 전 반영 확인, 벌금 계산 정확
+- [x] 커밋 + 푸시 → Render 자동 배포
+
+---
+
 ## 이번 세션 (2026-04-24) — 완료
 
 - [x] 백엔드: `detect_market()` + Yahoo Finance로 KR 주식 실시간 시세

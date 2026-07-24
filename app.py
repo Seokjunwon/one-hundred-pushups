@@ -408,7 +408,8 @@ def get_calendar(year, month):
         PushupRecord.date <= end_date
     ).all()
 
-    completed_dates = [r.date.isoformat() for r in records if r.completed]
+    completed_date_set = {r.date for r in records if r.completed}
+    completed_dates = [d.isoformat() for d in sorted(completed_date_set)]
 
     # 공휴일 정보
     holiday_dates = []
@@ -420,8 +421,11 @@ def get_calendar(year, month):
                 'name': kr_holidays.get(current_date)
             })
 
-    # 벌금 계산
-    penalty, missed_days, total_workdays = calculate_penalty(user_id, year, month)
+    # 벌금 계산 (이미 조회한 records 재사용 — 추가 DB 쿼리 없음)
+    workdays = get_month_workdays(year, month)
+    missed_days = len([d for d in workdays if d not in completed_date_set])
+    total_workdays = len(workdays)
+    penalty = missed_days * 10000
 
     return jsonify({
         'year': year,
