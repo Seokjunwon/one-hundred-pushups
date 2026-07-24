@@ -1412,21 +1412,20 @@
         }
 
         .stock-item {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
             padding: 15px 0;
             border-bottom: 1px solid var(--hairline);
-            gap: 12px;
         }
 
         .stock-item:last-child {
             border-bottom: none;
         }
 
-        .stock-main {
-            flex: 1;
-            min-width: 0;
+        .stock-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
         }
 
         .stock-symbol {
@@ -1434,6 +1433,10 @@
             font-size: 1rem;
             color: var(--text-strong);
             letter-spacing: -0.02em;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .stock-code {
@@ -1445,30 +1448,6 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .stock-shares {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            margin-top: 4px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stock-avg {
-            font-size: 0.75rem;
-            color: var(--muted);
-            font-weight: 500;
-            margin-top: 2px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stock-right {
-            text-align: right;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 6px;
-        }
-
         .stock-change-badge {
             font-size: 0.8rem;
             font-weight: 700;
@@ -1476,6 +1455,7 @@
             border-radius: 999px;
             letter-spacing: -0.01em;
             font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
         }
 
         .stock-change-badge.up {
@@ -1493,13 +1473,45 @@
             color: var(--muted);
         }
 
-        .stock-value {
+        /* 종목별 상세 지표 (보유/투자액/평가액/손익) */
+        .stock-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 14px;
+        }
+
+        .stock-metric {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .stock-metric .m-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .stock-metric .m-value {
+            font-size: 0.825rem;
             font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-strong);
+            color: var(--text);
             letter-spacing: -0.015em;
             font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
+        .stock-metric .m-value.strong {
+            color: var(--text-strong);
+        }
+
+        .stock-metric .m-value.up { color: var(--stock-up); }
+        .stock-metric .m-value.down { color: var(--stock-down); }
+        .stock-metric .m-value.zero { color: var(--muted); }
 
         .asset-empty {
             text-align: center;
@@ -3033,16 +3045,33 @@
 
                         const displayName = s.name && s.name !== s.symbol ? s.name : s.symbol;
                         const subCode = s.name && s.name !== s.symbol ? `<span class="stock-code">${s.symbol}</span>` : '';
+
+                        const gainKrw = s.gain_krw || 0;
+                        const gainKrwStr = `${gainKrw > 0 ? '+' : gainKrw < 0 ? '-' : ''}${Math.abs(gainKrw).toLocaleString()}원`;
+
                         return `
                             <li class="stock-item">
-                                <div class="stock-main">
+                                <div class="stock-top">
                                     <div class="stock-symbol">${marketBadge}${displayName}${subCode}</div>
-                                    <div class="stock-shares">${s.shares}주</div>
-                                    <div class="stock-avg">내 평균 ${avgDisplay}</div>
-                                </div>
-                                <div class="stock-right">
                                     <div class="stock-change-badge ${gainClass}">${gainArrow}${gainSign}${Math.abs(gainPct).toFixed(2)}%</div>
-                                    <div class="stock-value">${s.value_krw.toLocaleString()}원</div>
+                                </div>
+                                <div class="stock-metrics">
+                                    <div class="stock-metric">
+                                        <span class="m-label">보유</span>
+                                        <span class="m-value">${s.shares}주 · ${avgDisplay}</span>
+                                    </div>
+                                    <div class="stock-metric">
+                                        <span class="m-label">투자액</span>
+                                        <span class="m-value">${(s.cost_krw || 0).toLocaleString()}원</span>
+                                    </div>
+                                    <div class="stock-metric">
+                                        <span class="m-label">평가액</span>
+                                        <span class="m-value strong">${s.value_krw.toLocaleString()}원</span>
+                                    </div>
+                                    <div class="stock-metric">
+                                        <span class="m-label">손익</span>
+                                        <span class="m-value ${gainClass}">${gainKrwStr}</span>
+                                    </div>
                                 </div>
                             </li>
                         `;
