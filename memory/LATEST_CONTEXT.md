@@ -1,6 +1,6 @@
 # 100챌린지 - 최신 컨텍스트
 
-> 마지막 업데이트: 2026-04-24
+> 마지막 업데이트: 2026-07-24
 
 ---
 
@@ -24,34 +24,38 @@
 | `templates/index.html` | 단일 파일 프론트엔드 (HTML + CSS + JS, ~3100줄) |
 | `requirements.txt` | Python 의존성 |
 | `render.yaml` | Render 배포 설정 |
-| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v16**) |
-| `static/manifest.json` | PWA 매니페스트 (theme_color: #FEE500) |
-| `static/icons/` | PWA 아이콘 (72~512px, 카카오톡 옐로우 그라데이션 + 검정 "100") |
+| `static/service-worker.js` | PWA 서비스 워커 (현재 캐시 **v17**) |
+| `static/manifest.json` | PWA 매니페스트 (theme_color: #0B0E11) |
+| `static/icons/` | PWA 아이콘 (72~512px, 딥블랙 배경 + 옐로우 라운드 배지 + 검정 "100") |
+| `DESIGN.md` | 디자인 시스템 기준 문서 (Binance DESIGN.md, awesome-design-md 71K★ 출처) |
 | `memory/` | 세션 메모리 시스템 |
 
 ---
 
-## 디자인 테마
+## 디자인 테마 — "Yellow Voltage on Deep Black" (2026-07-24 전면 리뉴얼)
 
-- **컨셉컬러**: 화이트톤 + 카카오톡 옐로우 (모던 미니멀)
-- `--primary`: #FEE500 (카카오톡 옐로우)
-- `--primary-dark`: #F6C700 (눌림/강조용)
-- `--primary-light`: #FFF9C4 (연한 배경)
-- `--primary-pale`: #FFFDEB
-- `--primary-ink`: #191600 (옐로우 위 텍스트 — 카카오 스타일 검정)
-- `--primary-gradient`: linear-gradient(135deg, #FEE500 → #FDD835)
-- `--dark-hero`: linear-gradient(135deg, #0F172A → #1E293B → #334155) (차콜; 벌금카드/이벤트히어로용)
-- **폰트**: Pretendard Variable (CDN, trendy 한국어 타이포)
-- **헤더**: 화이트 배경 + 하단 보더 + 옐로우 아이콘(검정 "100")
-- **카드**: 흰색 + 미세 보더
-- **벌금 카드 / 이벤트 히어로 / 자산 총액 카드(구) / 공지바**: `var(--dark-hero)` 차콜 그라데이션
-- **자산 카드(신)**: 화이트 요약(평가금액 + 수익률 +X%(+원) + 총투자금/현금보유 메타)
-- **옐로우 배경 요소**: 버튼/아바타/배너 등 모두 `color: var(--primary-ink)` 검정 텍스트 (가독성)
-- **한국식 등락 컬러**: 상승=빨강(#DC2626), 하락=파랑(#2563EB)
-- **명예의전당 1위**: 골드 배경 + 별(✦) 트윙클 10개 + 폭죽 burst 3개 + "멋지다" 자동 표시
-- **PWA 아이콘**: 카카오톡 옐로우 그라데이션 + 검정 "100" (Pillow 재생성 완료)
+- **기준 문서**: 프로젝트 루트 `DESIGN.md` (Binance 디자인 시스템). 디자인 작업 시 반드시 이 토큰 체계 따를 것.
+- **원칙**: 단일 액센트(옐로우는 CTA·핵심숫자·완료표시만), 플랫 컬러블록(명도 단차로 엘리베이션, 그림자/글로우 금지), 숫자 tabular-nums, 헤어라인 1px 구분
+- `--primary`: #FCD535 (옐로우) / `--primary-active`: #F0B90B / `--primary-ink`: #181A20 (옐로우 위 블랙)
+- `--canvas`: #0B0E11 (페이지 바닥) / `--card`: #1E2329 / `--elev`: #2B3139 (중첩 서페이스 = 헤어라인)
+- `--text`: #EAECEF / `--text-strong`: #FFF / `--muted`: #707A8A
+- `--success`: #0ECB81 / `--danger`: #F6465D / `--blue`: #4A9EFF
+- **한국식 등락**: 상승=빨강(#F6465D), 하락=파랑(#4A9EFF)
+- **폰트**: Pretendard Variable 단독 (Inter 로드 제거됨)
+- **벌금 카드**: 다크 카드 + 옐로우 대형 숫자 (stat-callout 시그니처)
+- **달력**: 완료=옐로우 채움+블랙 숫자, 오늘=옐로우 링, 미완료=레드 틴트, 일=빨강/토=파랑 텍스트
+- **명예의전당 1위**: 옐로우 틴트 그라데이션 + 옐로우 별 트윙클/폭죽 + "멋지다"
+- **토스트**: 라이트 인버전 (밝은 배경 + 블랙 텍스트)
 
 ---
+
+## 프론트 성능 패턴 (2026-07-24)
+
+- **stale-while-revalidate**: 캘린더/랭킹 localStorage 캐시 (`calCache:{uid}:{y}-{m}`, `rankCache:{y}-{m}`) → 진입 즉시 렌더 후 백그라운드 fetch 갱신
+- **낙관적 업데이트**: `toggleDay()` — 화면 먼저 반영(recalcLocalStats로 벌금 로컬 재계산) → 서버 전송 백그라운드, 실패 시 flip() 롤백
+- **월 목록**: `/api/available-months` 호출 안 함 (클라이언트 생성, 엔드포인트는 잔존)
+- **월 변경**: `onMonthChange()` → loadCalendar + loadRanking 병렬
+- **백엔드**: `/api/calendar`는 단일 records 쿼리로 벌금까지 계산 (calculate_penalty 함수는 미사용 잔존)
 
 ## DB 모델 (7개)
 
@@ -111,7 +115,7 @@
 
 ## UI 구성 (index.html 내 순서)
 
-1. **헤더** - 딥퍼플 배경 + "100" 아이콘 + "100챌린지" 흰색 제목
+1. **헤더** - 딥블랙 배경 + 옐로우 "100" 배지 + 흰색 제목
 2. **유저바** - 이름, 관리자 톱니바퀴(⚙), 로그아웃
 3. **공지 바** (notice-bar) - D-Day + 이벤트 제목, 클릭 → 이벤트 상세
 4. **월 선택** 드롭다운
@@ -130,6 +134,8 @@
 ## 최근 커밋 히스토리
 
 ```
+5aac981 Feature: 속도 대폭 개선(캐시 즉시렌더+낙관적 업데이트) + 다크 프리미엄 디자인 리뉴얼
+98d0639 Docs: 세션 종료 — 메모리/세션 기록/tasks 업데이트
 65ae227 Feature: 실제 회사명 표시 + 카카오톡 옐로우 로고
 62c4d58 Feature: 코스피/코스닥 지원 + 화이트/머스터드 UI 리디자인
 ab1e2f0 Fix: 타임존 버그 수정 - date.today()를 KST 기준으로 변경
@@ -146,9 +152,9 @@ ca4f8dc Feature: D-Day 이벤트 기능 추가 (공지바 + 참석 관리)
 ## 주의사항
 
 - **타임존**: 서버(Render)는 UTC, 사용자는 KST → `today_kst()` 헬퍼 사용 필수 (`date.today()` 사용 금지)
-- `models.py`의 `avg_price` 컬럼 추가는 **취소됨** (절대 추가하지 말 것)
-- 서비스 워커 캐시 변경 시 `CACHE_NAME`과 `STATIC_CACHE` **둘 다** 업데이트 필요 (현재 v14)
+- ~~avg_price 금지~~ outdated: 이미 존재하며 정상 동작. ALTER는 try/except 패턴 (lessons.md L3)
+- 서비스 워커 캐시 변경 시 `CACHE_NAME`과 `STATIC_CACHE` **둘 다** 업데이트 필요 (현재 v17)
 - `db.create_all()`은 새 테이블만 생성, 기존 테이블 컬럼 변경 불가
 - 기존 사용자 영향 없도록 backward-compatible 개발 필수
 - 벌금계좌: (카카오)7942-14-57728 김병석
-- PWA 아이콘 재생성 시: Pillow 스크립트로 gradient + "100" 텍스트 렌더링
+- PWA 아이콘 재생성 시: Pillow 스크립트 (딥블랙 #0B0E11 배경 + 옐로우 #FCD535 라운드 배지 + 블랙 "100")

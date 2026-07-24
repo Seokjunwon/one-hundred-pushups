@@ -73,5 +73,6 @@
 
 1. `memory/LATEST_CONTEXT.md` 읽기 (프로젝트 현재 상태 전체)
 2. 이 파일(`tasks/todo.md`) 읽기 (진행 중인 작업)
-3. `memory/sessions/2026-04-24_kr-stocks-kakao-yellow.md` 참고 (이번 세션 상세)
-4. `[A] 프로덕션 검증` 항목부터 관리자에게 확인 요청
+3. `memory/sessions/2026-07-24_perf-dark-redesign.md` 참고 (최근 세션 상세)
+4. 디자인 작업 시 루트 `DESIGN.md` 토큰 체계 준수
+5. 우선 확인: (a) 다크 디자인 실기기 반영(서비스워커 v17), (b) `[A] 프로덕션 검증` 잔여 항목
